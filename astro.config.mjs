@@ -4,6 +4,7 @@ import starlight from '@astrojs/starlight';
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import tailwindcss from "@tailwindcss/vite";
+import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
@@ -80,4 +81,6 @@ export default defineConfig({
 	vite: {
 		plugins: [tailwindcss()],
 	},
+	output: 'static',
+	adapter: vercel(),
 });
