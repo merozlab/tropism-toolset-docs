@@ -19,7 +19,7 @@ export default defineConfig({
 			title: 'Tropism Toolset',
 			description: 'Python toolkit for analyzing plant mechanics and tropisms',
 			social: [
-				{ icon: 'github', label: 'GitHub', href: 'https://github.com/merozlab' }
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/merozlab/tropism-toolset' }
 			],
 			sidebar: [
 				{

@@ -146,7 +146,7 @@ Ordered from base to tip, sequential frames.
 **`astro.config.mjs`**:
 - Markdown: remark-math + rehype-katex plugins (lines 10-14)
 - Starlight title: "Tropism Toolset"
-- GitHub social link: https://github.com/merozlab
+- GitHub social link: https://github.com/merozlab/tropism-toolset
 - Custom CSS: `./src/styles/custom.css`
 
 **`src/content.config.ts`**:
