@@ -1,0 +1,561 @@
+---
+title: Constants Module API
+description: API reference for physical constant calculation functions.
+---
+import Equation from '../../../components/Equation.astro';
+
+Functions for calculating physical constants (γ, β) and fitting growth dynamics.
+
+## Physical Constants
+
+### `get_gamma()`
+
+Calculate proprioceptive sensitivity from steady-state time.
+
+**Signature:**
+```python
+get_gamma(Tc: float, period: float = 900.0) -> float
+```
+
+**Parameters:**
+- `Tc` (float): Steady state time in frames
+- `period` (float, optional): Time per frame in seconds. Default: 900 (15 minutes)
+
+**Returns:**
+- `float`: Gamma (γ) in s⁻¹
+
+**Formula:**
+<Equation>
+
+$$\gamma = \frac{1}{T_c \cdot \Delta t}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants import get_gamma
+
+Tc = 120  # frames
+minutes_per_frame = 15
+period = minutes_per_frame * 60  # seconds
+
+gamma = get_gamma(Tc, period)
+print(f"Gamma: {gamma:.6f} s⁻¹")
+print(f"Characteristic time: {1/gamma:.2f} s")
+```
+
+---
+
+### `get_gamma_2()`
+
+Calculate gamma with advanced options for threshold crossing.
+
+**Signature:**
+```python
+get_gamma_2(
+    Tc_frames: int,
+    frame_interval_s: float,
+    S0: Optional[float] = None,
+    eps: Optional[float] = None,
+    p: Optional[float] = None
+) -> float
+```
+
+**Parameters:**
+- `Tc_frames` (int): Frames to steady state
+- `frame_interval_s` (float): Seconds per frame
+- `S0` (float, optional): Initial signal value
+- `eps` (float, optional): Threshold value
+- `p` (float, optional): Completion fraction (e.g., 0.632 for one time constant)
+
+**Returns:**
+- `float`: Gamma in s⁻¹
+
+**Methods:**
+1. If `p` provided: γ = -ln(1-p) / T
+2. If `S0` and `eps` provided: γ = ln(S0/eps) / T
+3. Otherwise: γ = 1/T (e-folding time)
+
+**Example:**
+```python
+from constants import get_gamma_2
+
+# Using completion fraction
+gamma = get_gamma_2(
+    Tc_frames=120,
+    frame_interval_s=900,
+    p=0.632  # 1 - 1/e
+)
+
+# Using threshold
+gamma = get_gamma_2(
+    Tc_frames=120,
+    frame_interval_s=900,
+    S0=1.5,
+    eps=0.1
+)
+```
+
+---
+
+### `get_beta()`
+
+Calculate gravitropic sensitivity from Lc and gamma.
+
+**Signature:**
+```python
+get_beta(Lc: float, gamma: float) -> float
+```
+
+**Parameters:**
+- `Lc` (float): Convergence length in meters
+- `gamma` (float): Proprioceptive sensitivity in s⁻¹
+
+**Returns:**
+- `float`: Beta (β) in m⁻¹
+
+**Formula:**
+<Equation>
+
+$$\beta = \frac{\gamma}{L_c}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants import get_beta
+
+Lc = 0.042  # m
+gamma = 2.3e-4  # s⁻¹
+
+beta = get_beta(Lc, gamma)
+print(f"Beta: {beta:.4f} m⁻¹")
+```
+
+---
+
+## Growth Analysis
+
+### `fit_growth_rate()`
+
+Fit linear model to extract growth rate (dL/dt).
+
+**Signature:**
+```python
+fit_growth_rate(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    *,
+    show: bool = False,
+    ylabel: str = "Value",
+    xlabel: str = "Frame",
+    title: str = "Linear Fit",
+    slope_label: str = "growth rate",
+    slope_units: str = "m/frame",
+    xvalues: Optional[TimeSeriesValues] = None,
+    use_xvalues_for_fit: bool = False
+) -> float
+```
+
+**Parameters:**
+- `times` (array): Frame or time values
+- `values` (array): Length measurements
+- `show` (bool, optional): Display plot. Default: False
+- `ylabel` (str, optional): Y-axis label
+- `xlabel` (str, optional): X-axis label
+- `title` (str, optional): Plot title
+- `slope_label` (str, optional): Label for slope annotation
+- `slope_units` (str, optional): Units for slope
+- `xvalues` (array, optional): Alternative x-values for plotting
+- `use_xvalues_for_fit` (bool, optional): Use xvalues for fit line
+
+**Returns:**
+- `float`: Growth rate (slope) in specified units
+
+**Example:**
+```python
+from constants import fit_growth_rate
+
+growth_rate = fit_growth_rate(
+    frames,
+    lengths,
+    show=True,
+    ylabel="Length (m)",
+    title="Elongation Dynamics",
+    slope_label="growth rate",
+    slope_units="m/frame"
+)
+
+# Convert to biological units
+growth_rate_per_hour = growth_rate * (60 / minutes_per_frame)
+```
+
+---
+
+### `fit_angular_velocity()`
+
+Fit piecewise linear model to extract angular velocity (dθ/dt).
+
+**Signature:**
+```python
+fit_angular_velocity(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    *,
+    show: bool = False,
+    ylabel: str = "Angle (rad)",
+    title: str = "Tip Angular Velocity - Piecewise Linear Fit",
+    initial_guess: Optional[list] = None,
+    bounds: Optional[tuple] = None
+) -> float
+```
+
+**Parameters:**
+- `times` (array): Frame or time values
+- `values` (array): Angle measurements in radians
+- `show` (bool, optional): Display plot with π-notation. Default: False
+- `ylabel` (str, optional): Y-axis label
+- `title` (str, optional): Plot title
+- `initial_guess` (list, optional): Initial parameters for fitting
+- `bounds` (tuple, optional): Parameter bounds
+
+**Returns:**
+- `float`: Angular velocity from phase 1 (rad/frame)
+
+**Example:**
+```python
+from constants import fit_angular_velocity
+
+angular_velocity = fit_angular_velocity(
+    frames,
+    tip_angles,
+    show=True,
+    title="Tip Reorientation"
+)
+
+# Convert to degrees per hour
+degrees_per_hour = np.degrees(angular_velocity) * (60 / minutes_per_frame)
+print(f"Angular velocity: {degrees_per_hour:.2f} °/hour")
+```
+
+---
+
+### `fit_angular_velocity_exponential()`
+
+Fit saturating exponential model to extract initial angular velocity.
+
+**Signature:**
+```python
+fit_angular_velocity_exponential(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    *,
+    show: bool = False,
+    ylabel: str = "Angle (rad)",
+    title: str = "Tip Angular Velocity - Saturating Exponential Fit",
+    initial_guess: Optional[list] = None,
+    bounds: Optional[tuple] = None
+) -> float
+```
+
+**Parameters:**
+- `times` (array): Frame or time values
+- `values` (array): Angle measurements in radians
+- `show` (bool, optional): Display plot. Default: False
+- `ylabel` (str, optional): Y-axis label
+- `title` (str, optional): Plot title
+- `initial_guess` (list, optional): Initial parameters [theta_inf, theta_0, tau]
+- `bounds` (tuple, optional): Parameter bounds
+
+**Returns:**
+- `float`: Initial angular velocity (θ∞ - θ₀)/τ in rad/frame
+
+**Model:**
+<Equation>
+
+$$\theta(t) = \theta_\infty - (\theta_\infty - \theta_0)e^{-t/\tau}$$
+
+</Equation>
+
+Initial angular velocity:
+<Equation>
+
+$$\frac{d\theta}{dt}\Big|_{t=0} = \frac{\theta_\infty - \theta_0}{\tau}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants import fit_angular_velocity_exponential
+
+# Fit exponential approach to steady state
+dtheta_dt = fit_angular_velocity_exponential(
+    frames,
+    tip_angles,
+    show=True
+)
+
+print(f"Initial angular velocity: {dtheta_dt:.6e} rad/frame")
+```
+
+**Notes:**
+- Alternative to piecewise linear fit
+- Physically motivated: describes approach to steady-state angle
+- τ is the characteristic time constant
+- Returns the initial rate of angle change
+
+---
+
+## Chauvet Model Parameters
+
+The Chauvet model quantifies how plants sense inclination rather than force. It defines:
+- Δ̃: Relative differential growth parameter
+- β̃: Gravitropic sensitivity
+
+### `Chauvet_Delta_tilde()`
+
+Calculate Chauvet Δ̃ parameter from angular velocity and growth rate.
+
+**Signature:**
+```python
+Chauvet_Delta_tilde(
+    dtheta_dt: float,
+    dL_dt: float,
+    R: float = 0.002,
+    display: bool = False
+) -> float
+```
+
+**Parameters:**
+- `dtheta_dt` (float): Tip angular velocity in rad/frame
+- `dL_dt` (float): Growth rate in m/frame
+- `R` (float, optional): Organ radius in meters. Default: 0.002 (2 mm)
+- `display` (bool, optional): Show diagnostic info. Default: False
+
+**Returns:**
+- `float`: Chauvet Δ̃ parameter (dimensionless)
+
+**Formula:**
+<Equation>
+
+$$\tilde{\Delta} = R \times \frac{d\theta/dt}{dL/dt}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants import (
+    get_lengths_from_masks,
+    get_tip_angles_linear_fit,
+    fit_growth_rate,
+    fit_angular_velocity,
+    Chauvet_Delta_tilde
+)
+
+# Calculate growth rate
+times_L, lengths, _ = get_lengths_from_masks(
+    mask_dir='data/masks/',
+    R=0.002
+)
+dL_dt = fit_growth_rate(times_L, lengths)
+
+# Calculate tip angular velocity
+times_theta, tip_angles = get_tip_angles_linear_fit(data, tip_percent=10)
+dtheta_dt = fit_angular_velocity(times_theta, tip_angles)
+
+# Calculate Delta tilde
+Delta = Chauvet_Delta_tilde(
+    dtheta_dt=dtheta_dt,
+    dL_dt=dL_dt,
+    R=0.002,
+    display=True
+)
+```
+
+**Notes:**
+- dθ/dt and dL/dt must be calculated separately before calling
+- Provides flexibility to choose different methods for calculating angles and lengths
+- R should match the physical organ radius
+
+---
+
+### `Chauvet_beta_tilde()`
+
+Calculate Chauvet β̃ gravitropic sensitivity from Δ̃ and plant data.
+
+**Signature:**
+```python
+Chauvet_beta_tilde(
+    Delta_tilde: float,
+    data: pd.DataFrame,
+    display: bool = False
+) -> float
+```
+
+**Parameters:**
+- `Delta_tilde` (float): Chauvet Δ̃ parameter from `Chauvet_Delta_tilde()`
+- `data` (DataFrame): DataFrame with 'x', 'y', 'frame' columns (coordinates in meters)
+- `display` (bool, optional): Show diagnostic info. Default: False
+
+**Returns:**
+- `float`: Chauvet β̃ gravitropic sensitivity (dimensionless)
+
+**Formula:**
+<Equation>
+
+$$\tilde{\beta} = \frac{\tilde{\Delta}}{\sin(\theta_0)}$$
+
+</Equation>
+
+Where θ₀ is the initial base angle from the first frame.
+
+**Example:**
+```python
+from constants import Chauvet_Delta_tilde, Chauvet_beta_tilde
+
+# First calculate Delta tilde
+Delta = Chauvet_Delta_tilde(
+    dtheta_dt=dtheta_dt,
+    dL_dt=dL_dt,
+    R=0.002,
+    display=True
+)
+
+# Then calculate beta tilde
+beta = Chauvet_beta_tilde(
+    Delta_tilde=Delta,
+    data=df,
+    display=True
+)
+
+print(f"Gravitropic sensitivity (β̃): {beta:.6f}")
+```
+
+**Notes:**
+- Requires Δ̃ calculated from `Chauvet_Delta_tilde()` first
+- Automatically calculates initial base angle θ₀ from data
+- Separation allows reusing Δ̃ for multiple calculations
+
+---
+
+## Bastien Model Parameters
+
+The Bastien model relates bending angle dynamics to growth rate through proprioception.
+
+### `Bastien_gamma_tilde()`
+
+Calculate Bastien γ̃ proprioceptive sensitivity.
+
+**Signature:**
+```python
+Bastien_gamma_tilde(beta_tilde: float, Lc: float, R: float) -> float
+```
+
+**Parameters:**
+- `beta_tilde` (float): Chauvet β̃ from `Chauvet_beta_tilde()`
+- `Lc` (float): Convergence length in meters
+- `R` (float): Organ radius in meters
+
+**Returns:**
+- `float`: Bastien γ̃ proprioceptive sensitivity
+
+**Formula:**
+<Equation>
+
+$$\tilde{\gamma} = \frac{L_c \cdot \tilde{\beta}}{R}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants import Bastien_gamma_tilde
+
+gamma_tilde = Bastien_gamma_tilde(
+    beta_tilde=beta,
+    Lc=0.042,
+    R=0.002
+)
+
+print(f"Proprioceptive sensitivity (γ̃): {gamma_tilde:.6f}")
+```
+
+---
+
+### `Bastien_Delta_tilde()`
+
+Calculate Bastien Δ parameter from bending rate and growth rate.
+
+**Signature:**
+```python
+Bastien_Delta_tilde(
+    dtheta_tip_dt: np.ndarray,
+    dE_dt: np.ndarray,
+    R: float = 0.002,
+    show: bool = False
+) -> float
+```
+
+**Parameters:**
+- `dtheta_tip_dt` (array): Rate of change of bending angle (θ_tip - θ_base) in rad/frame
+- `dE_dt` (array): Rate of change of length (growth rate) in m/frame
+- `R` (float, optional): Organ radius in meters. Default: 0.002
+- `show` (bool, optional): Display diagnostic plot. Default: False
+
+**Returns:**
+- `float`: Bastien Δ proprioceptive sensitivity (dimensionless)
+
+**Model:**
+<Equation>
+
+$$\frac{dB}{dt} = \frac{\Delta}{R} \times \frac{dE}{dt}$$
+
+</Equation>
+
+Where B = θ_tip - θ_base is the bending angle.
+
+**Example:**
+```python
+from constants import Bastien_Delta_tilde
+from constants.geometric_calculations import (
+    get_tip_angles_linear_fit,
+    get_lengths_from_centerlines
+)
+from scipy.signal import savgol_filter
+import numpy as np
+
+# Calculate bending angle B(t) = theta_tip(t) - theta_base(t)
+times_tip, tip_angles = get_tip_angles_linear_fit(data, percent=10, side='tip')
+times_base, base_angles = get_tip_angles_linear_fit(data, percent=10, side='base')
+B = tip_angles - base_angles
+
+# Calculate length L(t)
+times_L, L, _ = get_lengths_from_centerlines(data)
+
+# Apply Savitzky-Golay smoothing
+B_smoothed = savgol_filter(B, window_length=11, polyorder=2)
+L_smoothed = savgol_filter(L, window_length=11, polyorder=2)
+
+# Compute finite differences
+dB_dt = np.diff(B_smoothed)
+dE_dt = np.diff(L_smoothed)
+
+# Calculate Delta
+Delta = Bastien_Delta_tilde(dB_dt, dE_dt, R=0.002, show=True)
+
+print(f"Bastien Δ: {Delta:.6f}")
+```
+
+**Notes:**
+- Requires pre-calculated derivatives (use finite differences after smoothing)
+- Fits linear model: dB/dt = (Δ/R) × dE/dt
+- Slope of fit represents Δ/R in rad/m
+- Function returns Δ = slope × R (dimensionless)
+
+---
+
+## See Also
+
+- [Fitting Functions](/reference/fitting/) - For underlying fitting algorithms
+- [Geometric Calculations](/reference/geometric-calculations/) - For angle and arc length calculations
+- [Constants Extraction Guide](/guides/constants-extraction/) - Usage examples
+- [Growth Analysis Guide](/guides/growth-analysis/) - Complete workflows

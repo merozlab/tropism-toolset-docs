@@ -1,40 +1,91 @@
 ---
-title: Welcome to Starlight
-description: Get started building your docs site with Starlight.
-template: splash # Remove or comment out this line to display the site sidebar on this page.
+title: Tropism Toolset
+description: A Python toolkit for analyzing plant mechanics and tropisms through quantitative image analysis.
+template: splash
 hero:
-  tagline: Congrats on setting up a new Starlight project!
-  image:
-    file: ../../assets/houston.webp
+  tagline: Extract physical constants from plant growth experiments. Analyze gravitropism, proprioception, and mechanical properties with ease.
   actions:
-    - text: Example Guide
-      link: /guides/example/
+    - text: Get Started
+      link: /guides/installation/
       icon: right-arrow
-    - text: Read the Starlight docs
-      link: https://starlight.astro.build
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/merozlab
       icon: external
       variant: minimal
 ---
 
 import { Card, CardGrid } from '@astrojs/starlight/components';
 
-## Next steps
+## Key Features
 
 <CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+	<Card title="Physical Constants" icon="star">
+		Extract Young's modulus, convergence length (Lc), proprioceptive sensitivity (γ), and gravitropic sensitivity (β) from plant image data.
 	</Card>
-	<Card title="Change page layout" icon="document">
-		Delete `template: splash` in `src/content/docs/index.mdx` to display a
-		sidebar on this page.
+	<Card title="Geometric Analysis" icon="pencil">
+		Calculate angles, arclengths, and curvatures from centerline coordinates. Transform between Cartesian and arc-length coordinate systems.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="Growth Dynamics" icon="rocket">
+		Analyze growth rates, angular velocities, and growth zone characteristics. Detect steady states and fitting temporal models.
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
+	<Card title="Mathematical Models" icon="setting">
+		Implementations of Chauvet, Moulia, and Goriely models for gravitropism and proprioception analysis.
 	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="Rich Visualization" icon="open-book">
+		Create publication-ready plots with proper mathematical notation, colormaps, and scale bars. Generate analysis videos from mask sequences.
+	</Card>
+	<Card title="Batch Processing" icon="list-format">
+		Process multiple experiments efficiently with automated growth analysis pipelines and summary statistics.
+	</Card>
+</CardGrid>
+
+## Quick Example
+
+```python
+from constants import get_angles, fit_Lc, get_gamma, get_beta
+import pandas as pd
+
+# Load centerline data
+data = pd.read_csv("experiment_centerlines.csv")
+
+# Calculate angles and arclengths
+angles = get_angles(data)
+arclengths = get_arclengths(data)
+
+# Fit convergence length
+x0, Bl, A, Lc, r_squared = fit_Lc(arclengths, angles, show=True)
+
+# Calculate physical constants
+gamma = get_gamma(Tc=120, period=15*60)  # Tc in frames, period in seconds
+beta = get_beta(Lc, gamma)
+
+print(f"Convergence length: {Lc:.4f} m")
+print(f"Gamma: {gamma:.6f} s⁻¹")
+print(f"Beta: {beta:.4f} m⁻¹")
+```
+
+## What is Tropism Analysis?
+
+Tropisms are directional growth responses of plants to environmental stimuli. This toolkit focuses on:
+
+- **Gravitropism**: Growth response to gravity
+- **Proprioception**: Plant's ability to sense its own body curvature
+- **Mechanical Properties**: Young's modulus and other material properties
+- **Growth Dynamics**: Rates, zones, and temporal patterns
+
+The toolkit processes centerline data extracted from time-lapse images of growing plants, applies mathematical models from plant biomechanics literature, and extracts quantitative parameters characterizing the growth response.
+
+## Ready to Start?
+
+<CardGrid>
+	<Card title="Installation" icon="rocket">
+		[Install the toolkit](/guides/installation/) using Poetry or pip and set up your Jupyter environment.
+	</Card>
+	<Card title="Quick Start" icon="star">
+		[Follow the quick start guide](/guides/quickstart/) to run your first analysis in minutes.
+	</Card>
+	<Card title="Core Concepts" icon="open-book">
+		[Learn the fundamentals](/guides/concepts/) of tropism analysis and key parameters.
 	</Card>
 </CardGrid>

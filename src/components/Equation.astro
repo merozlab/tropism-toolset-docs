@@ -1,0 +1,40 @@
+---
+// Equation component - wraps KaTeX equations with border and padding
+interface Props {
+  /**
+   * Optional label for the equation (e.g., "Eq. 1")
+   */
+  label?: string;
+}
+
+const { label } = Astro.props;
+---
+
+<div class="equation-container">
+  {label && <span class="equation-label">{label}</span>}
+  <div class="equation-content">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .equation-container {
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+    background: var(--sl-color-bg-inline-code);
+  }
+
+  .equation-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sl-color-text-accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .equation-content {
+    text-align: center;
+  }
+</style>

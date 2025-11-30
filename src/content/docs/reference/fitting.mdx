@@ -1,0 +1,522 @@
+---
+title: Fitting Module API
+description: API reference for curve fitting and model analysis functions.
+---
+import Equation from '../../../components/Equation.astro';
+
+Functions for fitting mathematical models to plant data, including linear, piecewise, exponential, and logistic models, plus steady state detection.
+
+## Convergence Length Fitting
+
+### `fit_Lc()`
+
+Fit piecewise constant + saturating exponential to extract convergence length.
+
+**Signature:**
+```python
+fit_Lc(
+    cum_len: ArclengthArray,
+    theta: AngleArray,
+    initial_guess: Optional[list] = None,
+    bounds: Optional[Tuple[list, list]] = None,
+    show: bool = True,
+    crop_start: int = 0,
+    crop_end: int = 0
+) -> LcFitResult
+```
+
+**Parameters:**
+- `cum_len` (array): Cumulative length (arc length) data
+- `theta` (array): Angle data in radians
+- `initial_guess` (list, optional): Initial parameters [x0, Bl, A, Lc]
+- `bounds` (tuple, optional): Parameter bounds
+- `show` (bool, optional): Display fit plot. Default: True
+- `crop_start` (int, optional): Points to crop from start. Default: 0
+- `crop_end` (int, optional): Points to crop from end. Default: 0
+
+**Returns:**
+- `tuple[float, float, float, float, float]`: (x0, Bl, A, Lc, r_squared)
+  - `x0`: Transition point between constant and exponential regions
+  - `Bl`: Baseline value (constant before x0, asymptote after)
+  - `A`: Amplitude of exponential change
+  - `Lc`: Convergence length (characteristic length scale)
+  - `r_squared`: R² value of fit
+
+**Model:**
+<Equation>
+
+$$
+\theta(s) = \begin{cases}
+B_\ell & s < s_0 \\
+B_\ell + A(1 - e^{-(s-s_0)/L_c}) & s \geq s_0
+\end{cases}
+$$
+
+</Equation>
+
+**Example:**
+```python
+from constants import get_angles, get_arclengths
+from constants.fitting import fit_Lc
+
+# Get steady-state frame data
+frame_data = data[data['frame'] == steady_frame]
+
+# Calculate angles and arclengths
+angles = get_angles(frame_data)
+arclengths = get_arclengths(frame_data)
+
+# Fit to extract Lc
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    arclengths,
+    angles,
+    show=True,
+    crop_end=3  # Remove noisy tip points
+)
+
+print(f"Convergence length: {Lc:.4f} m")
+print(f"R²: {r_squared:.4f}")
+```
+
+**Notes:**
+- **Critical function** for gravitropism analysis
+- Lc represents spatial extent of gravitropic response
+- Typical values: 0.01 - 0.1 m for roots
+- Used to calculate β = γ/Lc
+- Data-driven initial guess if not provided
+- Crop noisy base/tip points for better fits
+
+---
+
+## Linear Fitting
+
+### `fit_linear()`
+
+Fit single linear function to data.
+
+**Signature:**
+```python
+fit_linear(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    show: bool = False,
+    ylabel: str = "Value",
+    xlabel: str = "Time",
+    title: str = "Linear Fit",
+    slope_label: str = "slope",
+    slope_units: str = "",
+    xvalues: Optional[TimeSeriesValues] = None,
+    use_xvalues_for_fit: bool = False
+) -> LinearFitResult
+```
+
+**Parameters:**
+- `times` (array): Time/frame values (x-axis)
+- `values` (array): Values to fit (y-axis)
+- `show` (bool, optional): Display plot. Default: False
+- `ylabel` (str, optional): Y-axis label
+- `xlabel` (str, optional): X-axis label
+- `title` (str, optional): Plot title
+- `slope_label` (str, optional): Label for slope annotation
+- `slope_units` (str, optional): Units for slope
+- `xvalues` (array, optional): Alternative x-values for plotting
+- `use_xvalues_for_fit` (bool, optional): Use xvalues for fit line. Default: False
+
+**Returns:**
+- `tuple[float, float, np.ndarray]`: (slope, r_squared, coeffs)
+  - `slope`: Slope of linear fit
+  - `r_squared`: R² value
+  - `coeffs`: Polynomial coefficients [slope, intercept]
+
+**Example:**
+```python
+from constants.fitting import fit_linear
+
+# Fit growth rate
+slope, r2, coeffs = fit_linear(
+    frames,
+    lengths,
+    show=True,
+    ylabel="Length (m)",
+    slope_label="growth rate",
+    slope_units="m/frame"
+)
+```
+
+---
+
+### `fit_piecewise_linear()`
+
+Fit two linear segments with breakpoint optimization via R² maximization.
+
+**Signature:**
+```python
+fit_piecewise_linear(
+    frames: TimeArray,
+    values: TimeSeriesValues,
+    min_bp: int = 5
+) -> PiecewiseFitResult
+```
+
+**Parameters:**
+- `frames` (array): Frame numbers (x-axis)
+- `values` (array): Values to fit (y-axis)
+- `min_bp` (int, optional): Minimum frames from start/end for breakpoint. Default: 5
+
+**Returns:**
+- `tuple[float, float, int, tuple]`: (slope1, slope2, breakpoint, (p1_coeffs, p2_coeffs))
+  - `slope1`: Phase 1 slope
+  - `slope2`: Phase 2 slope
+  - `breakpoint`: Optimal frame index for transition
+  - `p1_coeffs`: Phase 1 coefficients [slope, intercept]
+  - `p2_coeffs`: Phase 2 coefficients [slope, intercept]
+
+**Example:**
+```python
+from constants.fitting import fit_piecewise_linear
+
+# Find two-phase growth
+slope1, slope2, bp, (p1, p2) = fit_piecewise_linear(
+    frames,
+    lengths,
+    min_bp=10
+)
+
+print(f"Phase 1 growth rate: {slope1:.6e} m/frame")
+print(f"Phase 2 growth rate: {slope2:.6e} m/frame")
+print(f"Breakpoint: frame {bp}")
+```
+
+**Notes:**
+- Searches discrete frame indices for optimal breakpoint
+- Maximizes overall R² of combined segments
+- Use for data with clear two-phase behavior
+
+---
+
+### `fit_piecewise_linear_continuous()`
+
+Fit continuous piecewise linear model with curve_fit optimization.
+
+**Signature:**
+```python
+fit_piecewise_linear_continuous(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    initial_guess: Optional[list] = None,
+    bounds: Optional[Tuple[list, list]] = None,
+    show: bool = False
+) -> PiecewiseFitResult
+```
+
+**Parameters:**
+- `times` (array): Time/frame values
+- `values` (array): Values to fit
+- `initial_guess` (list, optional): Initial parameters [x0, m1, b1, m2]
+- `bounds` (tuple, optional): Parameter bounds
+- `show` (bool, optional): Display plot. Default: False
+
+**Returns:**
+- `tuple[float, float, float, tuple]`: (slope1, slope2, breakpoint, (p1_coeffs, p2_coeffs))
+  - `slope1`: Phase 1 slope
+  - `slope2`: Phase 2 slope
+  - `breakpoint`: Optimal breakpoint location (continuous)
+  - `p1_coeffs`: Phase 1 coefficients
+  - `p2_coeffs`: Phase 2 coefficients
+
+**Model:**
+<Equation>
+$$
+y = \begin{cases}
+m_1 x + b_1 & x < x_0 \\
+m_2(x - x_0) + (m_1 x_0 + b_1) & x \geq x_0
+\end{cases}
+$$
+</Equation>
+
+**Example:**
+```python
+from constants.fitting import fit_piecewise_linear_continuous
+
+# Fit with continuous breakpoint
+m1, m2, x0, (p1, p2) = fit_piecewise_linear_continuous(
+    times,
+    angles,
+    show=True
+)
+```
+
+**Notes:**
+- Breakpoint x₀ is optimized as continuous parameter
+- Enforces continuity at breakpoint
+- More flexible than discrete breakpoint search
+- Used by `fit_angular_velocity()`
+
+---
+
+## Nonlinear Fitting
+
+### `fit_saturating_exponential()`
+
+Fit saturating exponential model for approach to steady state.
+
+**Signature:**
+```python
+fit_saturating_exponential(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    initial_guess: Optional[list] = None,
+    bounds: Optional[Tuple[list, list]] = None,
+    show: bool = False,
+    data_type: str = 'angle'
+) -> SaturatingExponentialResult
+```
+
+**Parameters:**
+- `times` (array): Time/frame values
+- `values` (array): Angle or length measurements
+- `initial_guess` (list, optional): Initial parameters [y_inf, y_0, tau]
+- `bounds` (tuple, optional): Parameter bounds
+- `show` (bool, optional): Display plot. Default: False
+- `data_type` (str, optional): 'angle' or 'length'. Default: 'angle'
+
+**Returns:**
+- `tuple[float, float, float, float]`: (y_inf, y_0, tau, r_squared)
+  - `y_inf`: Steady-state value
+  - `y_0`: Initial value
+  - `tau`: Time constant in frames
+  - `r_squared`: R² value
+
+**Model:**
+<Equation>
+
+$$y(t) = y_\infty - (y_\infty - y_0)e^{-t/\tau}$$
+
+</Equation>
+
+Initial rate:
+<Equation>
+
+$$\frac{dy}{dt}\Big|_{t=0} = \frac{y_\infty - y_0}{\tau}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants.fitting import fit_saturating_exponential
+
+# Fit angle approach to steady state
+theta_inf, theta_0, tau, r2 = fit_saturating_exponential(
+    frames,
+    tip_angles,
+    show=True,
+    data_type='angle'
+)
+
+print(f"Steady-state angle: {theta_inf:.6f} rad")
+print(f"Time constant: {tau:.2f} frames")
+print(f"Initial rate: {(theta_inf - theta_0)/tau:.6e} rad/frame")
+```
+
+**Notes:**
+- τ is time constant (frames to reach ~63% of change)
+- Physically motivated for gravitropic response
+- Alternative to piecewise linear fitting
+- Data-driven initial guess if not provided
+
+---
+
+### `fit_logistic_growth()`
+
+Fit logistic (S-curve) growth model.
+
+**Signature:**
+```python
+fit_logistic_growth(
+    times: TimeArray,
+    values: TimeSeriesValues,
+    initial_guess: Optional[list] = None,
+    bounds: Optional[Tuple[list, list]] = None,
+    show: bool = False,
+    data_type: str = 'angle'
+) -> LogisticGrowthResult
+```
+
+**Parameters:**
+- `times` (array): Time/frame values
+- `values` (array): Angle or length measurements
+- `initial_guess` (list, optional): Initial parameters [K, y_0, r, t_m]
+- `bounds` (tuple, optional): Parameter bounds
+- `show` (bool, optional): Display plot. Default: False
+- `data_type` (str, optional): 'angle' or 'length'. Default: 'angle'
+
+**Returns:**
+- `tuple[float, float, float, float, float]`: (K, y_0, r, t_m, r_squared)
+  - `K`: Carrying capacity (asymptotic maximum)
+  - `y_0`: Initial value
+  - `r`: Growth rate parameter (1/frames)
+  - `t_m`: Time of inflection point
+  - `r_squared`: R² value
+
+**Model:**
+<Equation>
+
+$$y(t) = y_0 + \frac{K - y_0}{1 + e^{-r(t - t_m)}}$$
+
+</Equation>
+
+Maximum growth rate at $t = t_m$:
+<Equation>
+
+$$\frac{dy}{dt}\Big|_{t=t_m} = \frac{r(K - y_0)}{4}$$
+
+</Equation>
+
+**Example:**
+```python
+from constants.fitting import fit_logistic_growth
+
+# Fit S-curve growth
+K, y_0, r, t_m, r2 = fit_logistic_growth(
+    frames,
+    lengths,
+    show=True,
+    data_type='length'
+)
+
+print(f"Carrying capacity: {K:.6f} m")
+print(f"Growth rate: {r:.6f} 1/frames")
+print(f"Inflection point: frame {t_m:.2f}")
+```
+
+**Notes:**
+- Describes sigmoidal growth typical of biological systems
+- At t_m: y(t_m) = y_0 + (K - y_0)/2 (midpoint)
+- Useful for length growth with saturation
+- Data-driven initial guess if not provided
+
+---
+
+## Steady State Detection
+
+### `find_steady_state()`
+
+Find steady state start in time series data.
+
+**Signature:**
+```python
+find_steady_state(
+    data: AngleArray | ArclengthArray,
+    window: int = 30,
+    mean_tol: float = 0.001,
+    var_tol: float = 0.0001
+) -> Optional[int]
+```
+
+**Parameters:**
+- `data` (array): Time series data to analyze
+- `window` (int, optional): Sliding window size. Default: 30
+- `mean_tol` (float, optional): Mean change tolerance. Default: 0.001
+- `var_tol` (float, optional): Variance change tolerance. Default: 0.0001
+
+**Returns:**
+- `int` or `None`: Frame number where steady state begins, or None if not found
+
+**Example:**
+```python
+from constants.fitting import find_steady_state
+from constants import get_lengths_from_centerlines
+
+# Get length time series
+times, lengths, _ = get_lengths_from_centerlines(data)
+
+# Find when growth stabilizes
+Tc = find_steady_state(
+    lengths,
+    window=30,
+    mean_tol=0.0005,
+    var_tol=0.00001
+)
+
+if Tc is not None:
+    print(f"Steady state reached at frame {Tc}")
+else:
+    print("Steady state not detected")
+```
+
+**Notes:**
+- Uses sliding window analysis
+- Checks: mean change, variance change, linear trend
+- All three criteria must be met simultaneously
+- Returns start of steady state window
+
+---
+
+### `find_steady_state_from_masks()`
+
+Detect steady state from mask stability analysis.
+
+**Signature:**
+```python
+find_steady_state_from_masks(
+    mask_dir: str | Path,
+    px_per_m: float,
+    window: int = 15,
+    mean_tol: Optional[float] = None,
+    var_tol: float = 0.00001,
+    method: str = "edge_change",
+    show: bool = False
+) -> MaskStabilityResult
+```
+
+**Parameters:**
+- `mask_dir` (str or Path): Directory with mask files (*.bmp)
+- `px_per_m` (float): Pixel to meter conversion factor
+- `window` (int, optional): Window size for detection. Default: 15
+- `mean_tol` (float, optional): Mean tolerance (auto-calculated if None)
+- `var_tol` (float, optional): Variance tolerance. Default: 0.00001
+- `method` (str, optional): 'overlap' or 'edge_change'. Default: 'edge_change'
+- `show` (bool, optional): Display plot. Default: False
+
+**Returns:**
+- `tuple[np.ndarray, Optional[int], Optional[float]]`: (stability_scores, Tc, median_area)
+  - `stability_scores`: Instability scores between frames
+  - `Tc`: Steady state start frame, or None
+  - `median_area`: Median mask area in m²
+
+**Methods:**
+- **'overlap'**: Jaccard Index (Intersection over Union) - measures mask overlap
+- **'edge_change'**: Edge pixel changes - measures boundary changes
+
+**Example:**
+```python
+from constants.fitting import find_steady_state_from_masks
+
+scores, Tc, area = find_steady_state_from_masks(
+    mask_dir='data/masks/',
+    px_per_m=10000,  # 0.1 mm per pixel
+    method='edge_change',
+    show=True
+)
+
+if Tc is not None:
+    print(f"Steady state at frame {Tc}")
+    print(f"Median mask area: {area:.6f} m²")
+```
+
+**Notes:**
+- Alternative to centerline-based detection
+- 'edge_change' more sensitive to growth zone changes
+- 'overlap' more robust to noise
+- Adaptive mean tolerance if not provided
+- Higher scores = more instability
+
+---
+
+## See Also
+
+- [Constants API](/reference/constants/) - For using fitted parameters (Lc, γ, β)
+- [Geometric Calculations API](/reference/geometric-calculations/) - For angle and length calculations
+- [Visualization API](/reference/visualization/) - For plotting fitted models
+- [Constants Extraction Guide](/guides/constants-extraction/) - Usage examples
+- [Steady State Guide](/guides/steady-state/) - Detection strategies

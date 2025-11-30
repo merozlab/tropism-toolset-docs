@@ -1,0 +1,149 @@
+---
+title: Installation
+description: How to install the Tropism Toolset and set up your environment.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Requirements
+
+- **Python**: 3.13 (required)
+- **Package Manager**: Poetry (recommended) or pip
+
+## Installation Methods
+
+<Tabs>
+<TabItem label="Poetry (Recommended)">
+
+Poetry provides better dependency management and is the recommended installation method.
+
+```bash
+# Navigate to the project directory
+cd path/to/constants
+
+# Install dependencies
+poetry install
+
+# Activate the virtual environment
+poetry shell
+```
+
+</TabItem>
+<TabItem label="pip">
+
+If you prefer using pip:
+
+```bash
+# Navigate to the project directory
+cd path/to/constants
+
+# Create a virtual environment
+python -m venv .venv
+
+# Activate the environment
+source .venv/bin/activate  # On macOS/Linux
+# or
+.venv\Scripts\activate     # On Windows
+
+# Install the package
+pip install -e .
+```
+
+</TabItem>
+</Tabs>
+
+## Jupyter Setup
+
+To use the toolkit in Jupyter notebooks, you need to register the environment as a Jupyter kernel:
+
+```bash
+# With the virtual environment activated
+python -m ipykernel install --user --name constants-env --display-name "Python (Tropism Toolset)"
+```
+
+After this, you can select "Python (Tropism Toolset)" as your kernel when running Jupyter notebooks.
+
+## Dependencies
+
+The toolkit includes the following main dependencies:
+
+### Scientific Computing
+- **NumPy** (≥2.2.5): Numerical computing
+- **SciPy** (≥1.15.3): Scientific algorithms and optimization
+- **pandas**: Data manipulation
+
+### Visualization
+- **Matplotlib** (≥3.10.3): Plotting and visualization
+- **Altair** (≥5.5.0): Interactive visualizations
+- **PySide6** (≥6.9.0): GUI components
+
+### Computer Vision
+- **OpenCV** (≥4.11.0): Image processing for mask analysis
+
+### Machine Learning
+- **scikit-learn** (≥1.7.0): Data analysis and fitting
+
+### Graph Analysis
+- **NetworkX** (≥3.5): Minimum spanning tree algorithms
+
+### Data Export
+- **openpyxl** (≥3.1.5): Excel file handling
+
+## Verifying Installation
+
+To verify that the installation was successful, try importing the package:
+
+```python
+import constants
+
+# Check available functions
+from constants import (
+    get_angles,
+    get_arclengths,
+    fit_Lc,
+    get_gamma,
+    get_beta,
+    plot_centerline_data
+)
+
+print("Installation successful!")
+```
+
+## Troubleshooting
+
+### Python Version Mismatch
+
+The toolkit requires Python 3.13. If you have a different version:
+
+```bash
+# Check your Python version
+python --version
+
+# Install Python 3.13 using pyenv (recommended)
+pyenv install 3.13
+pyenv local 3.13
+```
+
+### Import Errors in Notebooks
+
+If you see import errors when running notebooks:
+
+1. Make sure you've selected the correct kernel (Python Tropism Toolset)
+2. Verify the virtual environment is activated
+3. Try restarting the kernel
+
+### Poetry Lock Issues
+
+If you encounter Poetry lock file issues:
+
+```bash
+# Update the lock file
+poetry lock --no-update
+
+# Reinstall dependencies
+poetry install
+```
+
+## Next Steps
+
+Now that you have the toolkit installed, proceed to the [Quick Start Guide](/guides/quickstart/) to run your first analysis.
