@@ -275,7 +275,7 @@ Using custom Tc = 125 based on manual inspection.
 
 ### Import Errors
 
-If `from constants import ...` fails:
+If `from tropism_toolset import ...` fails:
 
 ```python
 # Add this at the top of the notebook
@@ -313,7 +313,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 # Import toolkit
-from constants import *
+from tropism_toolset import *
 
 # Configuration
 px_to_m = 100

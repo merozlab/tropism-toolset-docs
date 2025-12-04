@@ -24,7 +24,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants import get_angles
+from tropism_toolset import get_angles
 
 angles: AngleArray = get_angles(frame_data)
 ```
@@ -46,7 +46,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants import get_arclengths
+from tropism_toolset import get_arclengths
 
 arclengths: ArclengthArray = get_arclengths(frame_data)
 ```
@@ -68,7 +68,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants.geometric_calculations import calculate_curvature
+from tropism_toolset.geometric_calculations import calculate_curvature
 
 curvatures: CurvatureArray = calculate_curvature(frame_data)
 ```
@@ -115,7 +115,7 @@ NDArray[np.object_]
 
 **Usage:**
 ```python
-from constants import get_angles_over_time
+from tropism_toolset import get_angles_over_time
 
 angles: TimeSeriesAngles = get_angles_over_time(data)
 
@@ -138,7 +138,7 @@ list[ArclengthArray]
 
 **Usage:**
 ```python
-from constants import get_arclengths_over_time
+from tropism_toolset import get_arclengths_over_time
 
 arclengths: TimeSeriesArclengths = get_arclengths_over_time(data)
 
@@ -185,7 +185,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants import get_lengths_from_centerlines
+from tropism_toolset import get_lengths_from_centerlines
 
 times: TimeArray
 lengths: TimeSeriesValues
@@ -211,7 +211,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants import get_lengths_from_centerlines
+from tropism_toolset import get_lengths_from_centerlines
 
 times, lengths, units = get_lengths_from_centerlines(data)
 # lengths is LengthArray
@@ -234,7 +234,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants.geometric_calculations import calculate_average_curvature_over_time
+from tropism_toolset.geometric_calculations import calculate_average_curvature_over_time
 
 times, curvatures = calculate_average_curvature_over_time(data)
 # curvatures is CurvatureTimeSeriesArray
@@ -257,7 +257,7 @@ NDArray[np.float64]
 
 **Usage:**
 ```python
-from constants.fitting import fit_linear
+from tropism_toolset.fitting import fit_linear
 
 slope, r2, coeffs = fit_linear(times, values)
 # coeffs is PolyCoeffs
@@ -278,7 +278,7 @@ float
 
 **Usage:**
 ```python
-from constants import fit_growth_rate
+from tropism_toolset import fit_growth_rate
 
 growth_rate: GrowthRate = fit_growth_rate(times, lengths)
 ```
@@ -298,7 +298,7 @@ float
 
 **Usage:**
 ```python
-from constants import fit_angular_velocity
+from tropism_toolset import fit_angular_velocity
 
 angular_velocity: AngularVelocity = fit_angular_velocity(times, angles)
 ```
@@ -318,7 +318,7 @@ float
 
 **Usage:**
 ```python
-from constants.fitting import fit_Lc
+from tropism_toolset.fitting import fit_Lc
 
 x0, Bl, A, Lc, r2 = fit_Lc(arclengths, angles)
 # Lc is ConvergenceLength
@@ -339,7 +339,7 @@ float
 
 **Usage:**
 ```python
-from constants.fitting import fit_linear
+from tropism_toolset.fitting import fit_linear
 
 slope, r_squared, coeffs = fit_linear(times, values)
 # r_squared is RSquared
@@ -362,7 +362,7 @@ tuple[float, float, PolyCoeffs]
 
 **Usage:**
 ```python
-from constants.fitting import fit_linear
+from tropism_toolset.fitting import fit_linear
 
 result: LinearFitResult = fit_linear(times, values)
 slope, r2, coeffs = result
@@ -383,7 +383,7 @@ tuple[float, float, int, tuple[PolyCoeffs, PolyCoeffs]]
 
 **Usage:**
 ```python
-from constants.fitting import fit_piecewise_linear
+from tropism_toolset.fitting import fit_piecewise_linear
 
 result: PiecewiseFitResult = fit_piecewise_linear(frames, values)
 slope1, slope2, bp, (p1, p2) = result
@@ -404,7 +404,7 @@ tuple[float, float, float, float]
 
 **Usage:**
 ```python
-from constants.fitting import fit_saturating_exponential
+from tropism_toolset.fitting import fit_saturating_exponential
 
 result: SaturatingExponentialResult = fit_saturating_exponential(times, values)
 y_inf, y_0, tau, r2 = result
@@ -425,7 +425,7 @@ tuple[float, float, float, float, float]
 
 **Usage:**
 ```python
-from constants.fitting import fit_logistic_growth
+from tropism_toolset.fitting import fit_logistic_growth
 
 result: LogisticGrowthResult = fit_logistic_growth(times, values)
 K, y_0, r, t_m, r2 = result
@@ -446,7 +446,7 @@ tuple[float, float, float, float, float]
 
 **Usage:**
 ```python
-from constants.fitting import fit_Lc
+from tropism_toolset.fitting import fit_Lc
 
 result: LcFitResult = fit_Lc(arclengths, angles)
 x0, Bl, A, Lc, r2 = result
@@ -480,7 +480,7 @@ tuple[ArclengthArray, int | None, float | None]
 
 **Usage:**
 ```python
-from constants.fitting import find_steady_state_from_masks
+from tropism_toolset.fitting import find_steady_state_from_masks
 
 result: MaskStabilityResult = find_steady_state_from_masks(mask_dir, px_per_m)
 scores, Tc, area = result
@@ -501,7 +501,7 @@ tuple[TimeArray, LengthArray, str]
 
 **Usage:**
 ```python
-from constants import get_lengths_from_centerlines
+from tropism_toolset import get_lengths_from_centerlines
 
 result: LengthOverTimeResult = get_lengths_from_centerlines(data)
 times, lengths, units = result
@@ -522,7 +522,7 @@ tuple[TimeArray, TimeSeriesValues]
 
 **Usage:**
 ```python
-from constants.geometric_calculations import (
+from tropism_toolset.geometric_calculations import (
     get_tip_angles_averaging,
     calculate_average_curvature_over_time
 )

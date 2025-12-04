@@ -27,7 +27,7 @@ get_angles(data: pd.DataFrame, show: bool = False) -> AngleArray
 
 **Example:**
 ```python
-from constants import get_angles
+from tropism_toolset import get_angles
 import pandas as pd
 
 frame_data = data[data['frame'] == 0]
@@ -59,7 +59,7 @@ get_arclengths(data: pd.DataFrame) -> ArclengthArray
 
 **Example:**
 ```python
-from constants import get_arclengths
+from tropism_toolset import get_arclengths
 
 # Returns lengths in same units as input (e.g., pixels or meters)
 arclengths = get_arclengths(frame_data)
@@ -90,7 +90,7 @@ calculate_curvature(data: pd.DataFrame) -> CurvatureArray
 
 **Example:**
 ```python
-from constants import calculate_curvature
+from tropism_toolset import calculate_curvature
 
 frame_data = data[data['frame'] == 0]
 curvatures = calculate_curvature(frame_data)
@@ -121,7 +121,7 @@ calculate_average_curvature(data: pd.DataFrame) -> float
 
 **Example:**
 ```python
-from constants import calculate_average_curvature
+from tropism_toolset import calculate_average_curvature
 
 frame_data = data[data['frame'] == 0]
 avg_curv = calculate_average_curvature(frame_data)
@@ -200,7 +200,7 @@ get_arclengths_over_time(
 
 **Example:**
 ```python
-from constants import get_arclengths_over_time
+from tropism_toolset import get_arclengths_over_time
 
 arclengths = get_arclengths_over_time(data)
 
@@ -283,7 +283,7 @@ calculate_average_curvature_over_time(data: pd.DataFrame) -> TimeSeriesResult
 
 **Example:**
 ```python
-from constants import calculate_average_curvature_over_time
+from tropism_toolset import calculate_average_curvature_over_time
 
 times, avg_curvatures = calculate_average_curvature_over_time(data)
 
@@ -326,7 +326,7 @@ x_y_to_s_theta(
 
 **Example:**
 ```python
-from constants import x_y_to_s_theta
+from tropism_toolset import x_y_to_s_theta
 
 # Convert pixel coordinates to s,theta in meters
 s_theta_data = x_y_to_s_theta(data, px_to_length=100)
@@ -372,7 +372,7 @@ s_theta_to_xy(
 
 **Example:**
 ```python
-from constants import s_theta_to_xy
+from tropism_toolset import s_theta_to_xy
 
 # Reconstruct in pixels
 xy_data = s_theta_to_xy(s_theta_data, px_to_length=100, output_units='pixels')
@@ -425,7 +425,7 @@ get_lengths_from_centerlines(
 
 **Example:**
 ```python
-from constants import get_lengths_from_centerlines
+from tropism_toolset import get_lengths_from_centerlines
 
 # Without smoothing
 times, lengths, units = get_lengths_from_centerlines(data, show=True)
@@ -468,7 +468,7 @@ get_lengths_from_masks(
 
 **Example:**
 ```python
-from constants.geometric_calculations import get_lengths_from_masks
+from tropism_toolset.geometric_calculations import get_lengths_from_masks
 
 # Using known radius
 times, lengths, units = get_lengths_from_masks(
@@ -522,7 +522,7 @@ get_tip_angles_averaging(
 
 **Example:**
 ```python
-from constants.geometric_calculations import get_tip_angles_averaging
+from tropism_toolset.geometric_calculations import get_tip_angles_averaging
 
 times, tip_angles = get_tip_angles_averaging(data, tip_percent=15, base_percent=15)
 ```
@@ -560,7 +560,7 @@ get_tip_angles_linear_fit(
 
 **Example:**
 ```python
-from constants.geometric_calculations import get_tip_angles_linear_fit
+from tropism_toolset.geometric_calculations import get_tip_angles_linear_fit
 
 # Fit to tip 10%
 times, tip_angles = get_tip_angles_linear_fit(data, percent=10, side='tip')
@@ -604,7 +604,7 @@ infer_columns_and_units(df: pd.DataFrame) -> Tuple[str, str, str]
 
 **Example:**
 ```python
-from constants import infer_columns_and_units
+from tropism_toolset import infer_columns_and_units
 
 x_col, y_col, units = infer_columns_and_units(data)
 print(f"Using columns: {x_col}, {y_col} with units: {units}")
@@ -629,7 +629,7 @@ calculate_initial_base_angle(data: pd.DataFrame) -> float
 
 **Example:**
 ```python
-from constants import calculate_initial_base_angle
+from tropism_toolset import calculate_initial_base_angle
 
 sin_theta_0 = calculate_initial_base_angle(data)
 print(f"Initial base angle parameter: {sin_theta_0:.4f}")

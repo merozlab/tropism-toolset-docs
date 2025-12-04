@@ -12,7 +12,7 @@ Angles represent the local tangent direction along the plant organ.
 ### Single Frame Analysis
 
 ```python
-from constants import get_angles
+from tropism_toolset import get_angles
 import pandas as pd
 
 # Load and select a frame
@@ -55,7 +55,7 @@ Set via `PRESET` variable in `geometric_calculations.py`
 ### Multi-Frame Analysis
 
 ```python
-from constants import get_angles_over_time
+from tropism_toolset import get_angles_over_time
 
 # Calculate angles for all frames
 angles_per_frame, unique_frames = get_angles_over_time(data)
@@ -70,7 +70,7 @@ print(f"Processed {len(unique_frames)} frames")
 ### Spatial Slicing Before Angle Calculation
 
 ```python
-from constants.geometric_calculations import apply_spatial_slicing
+from tropism_toolset.geometric_calculations import apply_spatial_slicing
 
 # Analyze only the tip region
 tip_data = data.groupby('frame').apply(
@@ -87,7 +87,7 @@ Arc length is the cumulative distance along the centerline from base to tip.
 ### Single Frame
 
 ```python
-from constants import get_arclengths
+from tropism_toolset import get_arclengths
 
 px_to_m = 100  # Calibration factor
 
@@ -103,7 +103,7 @@ print(f"Total organ length: {total_length:.4f} m")
 ### Multiple Frames
 
 ```python
-from constants import get_arclengths_over_time
+from tropism_toolset import get_arclengths_over_time
 
 arclengths_per_frame = get_arclengths_over_time(data)
 # Convert to meters
@@ -127,7 +127,7 @@ Curvature κ = dθ/ds describes how quickly the angle changes with arc length.
 
 ```python
 import numpy as np
-from constants import get_angles, get_arclengths
+from tropism_toolset import get_angles, get_arclengths
 
 # Get angles and arc lengths
 angles = get_angles(frame_data)
@@ -160,7 +160,7 @@ Curvature calculation amplifies noise. Consider [smoothing the data](/guides/dat
 Transform (x, y) to (s, θ) coordinates:
 
 ```python
-from constants import x_y_to_s_theta
+from tropism_toolset import x_y_to_s_theta
 
 x = frame_data['x'].values
 y = frame_data['y'].values
@@ -180,7 +180,7 @@ stheta_data = pd.DataFrame({
 Reconstruct (x, y) from (s, θ):
 
 ```python
-from constants import s_theta_to_xy
+from tropism_toolset import s_theta_to_xy
 
 # Need initial position
 x0, y0 = x[0], y[0]
@@ -197,7 +197,7 @@ print(f"Reconstruction error: {error.mean():.6f} m (mean)")
 A fundamental visualization in tropism analysis:
 
 ```python
-from constants import plot_theta_vs_arclength_over_time
+from tropism_toolset import plot_theta_vs_arclength_over_time
 
 # Calculate for all frames
 angles_per_frame = get_angles_over_time(data)
@@ -221,7 +221,7 @@ This creates a multi-frame plot showing how the angle profile evolves.
 Extract base angle (initial orientation):
 
 ```python
-from constants.geometric_calculations import calculate_initial_base_angle
+from tropism_toolset.geometric_calculations import calculate_initial_base_angle
 
 # Base angle from first few points
 n_points = 5
@@ -334,7 +334,7 @@ arclengths_matched = arclengths[1:]  # N-1 lengths
 If angle plots show high-frequency noise:
 
 ```python
-from constants.fitting import smooth_centerlines
+from tropism_toolset.fitting import smooth_centerlines
 
 # Smooth coordinates first
 smoothed_data = smooth_centerlines(data, window_length=5, polyorder=2)

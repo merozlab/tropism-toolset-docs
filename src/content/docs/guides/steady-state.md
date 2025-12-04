@@ -22,7 +22,7 @@ Identifying the steady-state time ($T_c$) is another possible way to calculate $
 Detect when length reaches a plateau:
 
 ```python
-from constants import find_steady_state, get_arclengths
+from tropism_toolset import find_steady_state, get_arclengths
 import pandas as pd
 import numpy as np
 
@@ -92,7 +92,7 @@ print(f"Loose: frame {Tc_loose}")
 Use binary masks to detect shape stability:
 
 ```python
-from constants import find_steady_state_from_masks
+from tropism_toolset import find_steady_state_from_masks
 from pathlib import Path
 
 # Directory containing mask files
@@ -143,7 +143,7 @@ for method in ['overlap', 'hausdorff', 'centroid_shift']:
 Always visually verify automated detection:
 
 ```python
-from constants import display_steady_state_analysis
+from tropism_toolset import display_steady_state_analysis
 
 # Visualize detection on length data
 display_steady_state_analysis(
@@ -160,7 +160,7 @@ display_steady_state_analysis(
 For mask analysis:
 
 ```python
-from constants import display_mask_stability_analysis
+from tropism_toolset import display_mask_stability_analysis
 
 display_mask_stability_analysis(
     stability_scores=stability_scores,
@@ -207,7 +207,7 @@ print(f"Manually determined Tc: {Tc_manual}")
 Detect when tip angle stabilizes:
 
 ```python
-from constants import get_angles
+from tropism_toolset import get_angles
 
 # Extract tip angle over time
 tip_angles = []
@@ -292,7 +292,7 @@ else:
 Generate a video showing the transition to steady state:
 
 ```python
-from constants import create_video_with_colored_frames
+from tropism_toolset import create_video_with_colored_frames
 
 # Tc = frame where steady state begins
 create_video_with_colored_frames(

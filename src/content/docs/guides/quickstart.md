@@ -20,7 +20,7 @@ Your CSV should contain centerline coordinates extracted from plant images. We r
 ```python
 import pandas as pd
 import numpy as np
-from constants import (
+from tropism_toolset import (
     get_angles,
     get_arclengths,
     get_angles_over_time,
@@ -146,7 +146,7 @@ Here's the complete workflow in one script:
 
 ```python
 import pandas as pd
-from constants import *
+from tropism_toolset import *
 
 # Configuration
 data_file = "data/experiment_centerlines.csv"

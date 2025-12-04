@@ -10,7 +10,7 @@ The toolkit provides comprehensive visualization functions for all aspects of tr
 ### Basic Centerline Plot
 
 ```python
-from constants import plot_centerline_data
+from tropism_toolset import plot_centerline_data
 import pandas as pd
 
 data = pd.read_csv("centerlines.csv")
@@ -76,7 +76,7 @@ fig.savefig("centerline_timeseries.png", dpi=300, bbox_inches='tight')
 ### Simple Angle Display
 
 ```python
-from constants import display_angles
+from tropism_toolset import display_angles
 import numpy as np
 
 angles = get_angles(frame_data)
@@ -92,7 +92,7 @@ display_angles(
 
 ```python
 import matplotlib.pyplot as plt
-from constants import get_angles, get_arclengths
+from tropism_toolset import get_angles, get_arclengths
 
 angles = get_angles(frame_data)
 arclengths = get_arclengths(frame_data) / 100  # Convert pixels to meters
@@ -112,7 +112,7 @@ plt.show()
 ### Multi-Frame Angle Evolution
 
 ```python
-from constants import plot_theta_vs_arclength_over_time
+from tropism_toolset import plot_theta_vs_arclength_over_time
 
 angles_per_frame = get_angles_over_time(data)
 arclengths_per_frame = get_arclengths_over_time(data)
@@ -134,7 +134,7 @@ plot_theta_vs_arclength_over_time(
 The `fit_Lc` function automatically creates a publication-ready plot:
 
 ```python
-from constants import fit_Lc
+from tropism_toolset import fit_Lc
 
 x0, Bl, A, Lc, r_squared = fit_Lc(
     arclengths,
@@ -154,8 +154,8 @@ x0, Bl, A, Lc, r_squared = fit_Lc(
 ### Custom Lc Plot
 
 ```python
-from constants.display_utils import plot_piecewise_saturating_exponential
-from constants.fitting import piecewise_constant_saturating_exponential
+from tropism_toolset.display_utils import plot_piecewise_saturating_exponential
+from tropism_toolset.fitting import piecewise_constant_saturating_exponential
 
 # After fitting
 fig, ax = plot_piecewise_saturating_exponential(
@@ -180,7 +180,7 @@ fig.savefig('Lc_fit_custom.png', dpi=300)
 ### Length Over Time
 
 ```python
-from constants import display_length_over_time
+from tropism_toolset import display_length_over_time
 
 frames = data['frame'].unique()
 lengths = [...]  # Your length data
@@ -196,7 +196,7 @@ display_length_over_time(
 ### Linear Fits
 
 ```python
-from constants.display_utils import display_linear_fit
+from tropism_toolset.display_utils import display_linear_fit
 
 # After fitting
 coeffs, r_squared = fit_linear(frames, lengths)
@@ -216,7 +216,7 @@ display_linear_fit(
 ### Piecewise Linear Fits
 
 ```python
-from constants.display_utils import display_piecewise_fit
+from tropism_toolset.display_utils import display_piecewise_fit
 
 display_piecewise_fit(
     times=frames,
@@ -235,8 +235,8 @@ display_piecewise_fit(
 ### Saturating Exponential
 
 ```python
-from constants.display_utils import plot_saturating_exponential
-from constants.fitting import saturating_exponential_func
+from tropism_toolset.display_utils import plot_saturating_exponential
+from tropism_toolset.fitting import saturating_exponential_func
 
 # After fitting
 y_inf, y_0, tau, r_squared = fit_saturating_exponential(frames, lengths)
@@ -256,8 +256,8 @@ fig, ax = plot_saturating_exponential(
 ### Logistic Growth
 
 ```python
-from constants.display_utils import plot_logistic_growth
-from constants.fitting import logistic_growth_func
+from tropism_toolset.display_utils import plot_logistic_growth
+from tropism_toolset.fitting import logistic_growth_func
 
 K, y_0, r, t_m, r_squared = fit_logistic_growth(frames, lengths)
 
@@ -279,7 +279,7 @@ fig, ax = plot_logistic_growth(
 ### Length-Based Steady State
 
 ```python
-from constants.display_utils import display_steady_state_analysis
+from tropism_toolset.display_utils import display_steady_state_analysis
 
 display_steady_state_analysis(
     data=lengths,
@@ -296,7 +296,7 @@ display_steady_state_analysis(
 ### Mask Stability
 
 ```python
-from constants.display_utils import display_mask_stability_analysis
+from tropism_toolset.display_utils import display_mask_stability_analysis
 
 display_mask_stability_analysis(
     stability_scores=scores,
@@ -313,7 +313,7 @@ display_mask_stability_analysis(
 ### Basic Video from Masks
 
 ```python
-from constants import create_video_with_colored_frames
+from tropism_toolset import create_video_with_colored_frames
 from pathlib import Path
 
 create_video_with_colored_frames(
@@ -335,7 +335,7 @@ The video will show:
 ### Angle Evolution Heatmap
 
 ```python
-from constants.display_utils import plot_timelapse_heatmap
+from tropism_toolset.display_utils import plot_timelapse_heatmap
 import pandas as pd
 
 # Create s-theta-frame dataframe
@@ -484,7 +484,7 @@ plt.savefig('experiment_comparison.png', dpi=300)
 ### Distribution Plots
 
 ```python
-from constants.display_utils import plot_constant_histogram
+from tropism_toolset.display_utils import plot_constant_histogram
 
 # Dictionary of {experiment: [values]}
 Lc_results = {

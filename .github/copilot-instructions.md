@@ -83,11 +83,11 @@ Available from `@astrojs/starlight/components`:
 
 ## Code Examples Convention
 
-**Import pattern**: Always use `from constants import function_name`
+**Import pattern**: Always use `from tropism_toolset import function_name`
 
 Example:
 ```python
-from constants import get_angles, fit_Lc, get_gamma, get_beta
+from tropism_toolset import get_angles, fit_Lc, get_gamma, get_beta
 import pandas as pd
 
 # Load data

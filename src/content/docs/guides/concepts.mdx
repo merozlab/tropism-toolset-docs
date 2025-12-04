@@ -106,7 +106,7 @@ For analysis, we transform to natural coordinates that follow the centerline:
 - **θ**: Local tangent angle relative to vertical
 
 ```python
-from constants import x_y_to_s_theta
+from tropism_toolset import x_y_to_s_theta
 
 s, theta = x_y_to_s_theta(x_coords, y_coords, px_to_m)
 ```
@@ -168,7 +168,7 @@ data = pd.read_csv("centerlines.csv")
 Calculate local angles and arc lengths:
 
 ```python
-from constants import get_angles, get_arclengths
+from tropism_toolset import get_angles, get_arclengths
 
 angles = get_angles(frame_data)           # θ(s)
 arclengths = get_arclengths(frame_data) / px_to_m  # Convert to meters - s
@@ -179,7 +179,7 @@ arclengths = get_arclengths(frame_data) / px_to_m  # Convert to meters - s
 Fit mathematical models to extract parameters:
 
 ```python
-from constants import fit_Lc
+from tropism_toolset import fit_Lc
 
 x0, Bl, A, Lc, r_squared = fit_Lc(arclengths, angles)
 ```
@@ -200,7 +200,7 @@ $$
 Calculate physical constants:
 
 ```python
-from constants import get_gamma, get_beta
+from tropism_toolset import get_gamma, get_beta
 
 gamma = get_gamma(Tc, period)
 beta = get_beta(Lc, gamma)

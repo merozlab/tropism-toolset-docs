@@ -12,7 +12,7 @@ Extract and analyze growth dynamics including elongation rates, angular velociti
 Growth rate is the rate of organ elongation over time:
 
 ```python
-from constants import fit_growth_rate, get_arclengths
+from tropism_toolset import fit_growth_rate, get_arclengths
 import pandas as pd
 import numpy as np
 
@@ -59,7 +59,7 @@ print(f"Growth rate: {growth_rate_per_hour:.6f} m/hour")
 For two-phase growth (fast then slow):
 
 ```python
-from constants.fitting import fit_piecewise_linear_continuous
+from tropism_toolset.fitting import fit_piecewise_linear_continuous
 
 # Fit piecewise linear model
 slope1, slope2, breakpoint, (p1_coeffs, p2_coeffs) = fit_piecewise_linear_continuous(
@@ -80,7 +80,7 @@ print(f"Transition at frame: {breakpoint:.1f}")
 Track how quickly the tip reorients:
 
 ```python
-from constants import fit_angular_velocity, get_angles
+from tropism_toolset import fit_angular_velocity, get_angles
 
 # Extract tip angle over time
 frames = []
@@ -131,7 +131,7 @@ print(f"Gravitropic sensitivity (β̃): {beta_tilde:.4f} m⁻¹")
 Compare initial and final organ shapes:
 
 ```python
-from constants import get_angles, get_arclengths
+from tropism_toolset import get_angles, get_arclengths
 
 # Get first and last frames
 first_frame = data[data['frame'] == data['frame'].min()]
@@ -184,7 +184,7 @@ print(f"Growing region: {100 - overlap_percentage:.1f}%")
 For processes approaching steady state:
 
 ```python
-from constants.fitting import fit_saturating_exponential
+from tropism_toolset.fitting import fit_saturating_exponential
 
 # Fit length approaching L_infinity
 y_inf, y_0, tau, r_squared = fit_saturating_exponential(
@@ -205,7 +205,7 @@ print(f"R²: {r_squared:.4f}")
 For S-shaped growth curves:
 
 ```python
-from constants.fitting import fit_logistic_growth
+from tropism_toolset.fitting import fit_logistic_growth
 
 # Fit logistic model
 K, y_0, r, t_m, r_squared = fit_logistic_growth(

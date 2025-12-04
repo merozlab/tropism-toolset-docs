@@ -24,7 +24,7 @@ PRESET = "mathematical"  # or "mathieu"
 ```python
 def get_angles_custom(data, transformation=None):
     """Custom angle calculation with optional transformation."""
-    from constants.geometric_calculations import infer_columns_and_units
+    from tropism_toolset.geometric_calculations import infer_columns_and_units
     import numpy as np
 
     x_col, y_col, _ = infer_columns_and_units(data)
@@ -133,7 +133,7 @@ set_publication_style()
 def plot_centerline_custom(data, px_to_m, **kwargs):
     """Custom centerline visualization."""
     import matplotlib.pyplot as plt
-    from constants import get_angles_over_time
+    from tropism_toolset import get_angles_over_time
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -203,7 +203,7 @@ custom_param = get_custom_sensitivity(Lc=0.042, growth_rate=2e-6, R=0.00145)
 
 ```python
 # In your batch script
-from constants import get_beta, get_gamma
+from tropism_toolset import get_beta, get_gamma
 
 # Standard constants
 gamma = get_gamma(Tc, period)
@@ -337,7 +337,7 @@ class TropismAnalysis:
 
     def compute_all_constants(self):
         """Compute all constants."""
-        from constants import *
+        from tropism_toolset import *
 
         # Extract Lc
         final_data = self.data[self.data['frame'] == self.data['frame'].max()]

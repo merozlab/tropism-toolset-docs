@@ -56,8 +56,8 @@ $$
 
 **Example:**
 ```python
-from constants import get_angles, get_arclengths
-from constants.fitting import fit_Lc
+from tropism_toolset import get_angles, get_arclengths
+from tropism_toolset.fitting import fit_Lc
 
 # Get steady-state frame data
 frame_data = data[data['frame'] == steady_frame]
@@ -130,7 +130,7 @@ fit_linear(
 
 **Example:**
 ```python
-from constants.fitting import fit_linear
+from tropism_toolset.fitting import fit_linear
 
 # Fit growth rate
 slope, r2, coeffs = fit_linear(
@@ -173,7 +173,7 @@ fit_piecewise_linear(
 
 **Example:**
 ```python
-from constants.fitting import fit_piecewise_linear
+from tropism_toolset.fitting import fit_piecewise_linear
 
 # Find two-phase growth
 slope1, slope2, bp, (p1, p2) = fit_piecewise_linear(
@@ -236,7 +236,7 @@ $$
 
 **Example:**
 ```python
-from constants.fitting import fit_piecewise_linear_continuous
+from tropism_toolset.fitting import fit_piecewise_linear_continuous
 
 # Fit with continuous breakpoint
 m1, m2, x0, (p1, p2) = fit_piecewise_linear_continuous(
@@ -303,7 +303,7 @@ $$\frac{dy}{dt}\Big|_{t=0} = \frac{y_\infty - y_0}{\tau}$$
 
 **Example:**
 ```python
-from constants.fitting import fit_saturating_exponential
+from tropism_toolset.fitting import fit_saturating_exponential
 
 # Fit angle approach to steady state
 theta_inf, theta_0, tau, r2 = fit_saturating_exponential(
@@ -374,7 +374,7 @@ $$\frac{dy}{dt}\Big|_{t=t_m} = \frac{r(K - y_0)}{4}$$
 
 **Example:**
 ```python
-from constants.fitting import fit_logistic_growth
+from tropism_toolset.fitting import fit_logistic_growth
 
 # Fit S-curve growth
 K, y_0, r, t_m, r2 = fit_logistic_growth(
@@ -424,8 +424,8 @@ find_steady_state(
 
 **Example:**
 ```python
-from constants.fitting import find_steady_state
-from constants import get_lengths_from_centerlines
+from tropism_toolset.fitting import find_steady_state
+from tropism_toolset import get_lengths_from_centerlines
 
 # Get length time series
 times, lengths, _ = get_lengths_from_centerlines(data)
@@ -490,7 +490,7 @@ find_steady_state_from_masks(
 
 **Example:**
 ```python
-from constants.fitting import find_steady_state_from_masks
+from tropism_toolset.fitting import find_steady_state_from_masks
 
 scores, Tc, area = find_steady_state_from_masks(
     mask_dir='data/masks/',

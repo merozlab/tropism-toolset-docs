@@ -96,7 +96,7 @@ When creating or editing documentation:
 - Use frontmatter for metadata: `title`, `description`
 - Mathematical notation must use KaTeX-compatible LaTeX
 - Code examples should use Python with the `constants` module import pattern
-- Reference API functions in the format: `from constants import function_name`
+- Reference API functions in the format: `from tropism_toolset import function_name`
 - Include units in parameter descriptions (m, s⁻¹, m⁻¹, Pa, rad)
 
 ## Starlight Features Available

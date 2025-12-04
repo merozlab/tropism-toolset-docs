@@ -33,7 +33,7 @@ $$\gamma = \frac{1}{T_c \cdot \Delta t}$$
 
 **Example:**
 ```python
-from constants import get_gamma
+from tropism_toolset import get_gamma
 
 Tc = 120  # frames
 minutes_per_frame = 15
@@ -70,7 +70,7 @@ $$\beta = \frac{\gamma}{L_c}$$
 
 **Example:**
 ```python
-from constants import get_beta
+from tropism_toolset import get_beta
 
 Lc = 0.042  # m
 gamma = 2.3e-4  # s⁻¹
@@ -121,7 +121,7 @@ fit_growth_rate(
 
 **Example:**
 ```python
-from constants import fit_growth_rate
+from tropism_toolset import fit_growth_rate
 
 growth_rate = fit_growth_rate(
     frames,
@@ -171,7 +171,7 @@ fit_angular_velocity(
 
 **Example:**
 ```python
-from constants import fit_angular_velocity
+from tropism_toolset import fit_angular_velocity
 
 angular_velocity = fit_angular_velocity(
     frames,
@@ -233,7 +233,7 @@ $$\frac{d\theta}{dt}\Big|_{t=0} = \frac{\theta_\infty - \theta_0}{\tau}$$
 
 **Example:**
 ```python
-from constants import fit_angular_velocity_exponential
+from tropism_toolset import fit_angular_velocity_exponential
 
 # Fit exponential approach to steady state
 dtheta_dt = fit_angular_velocity_exponential(
@@ -291,7 +291,7 @@ $$\tilde{\Delta} = R \times \frac{d\theta/dt}{dL/dt}$$
 
 **Example:**
 ```python
-from constants import (
+from tropism_toolset import (
     get_lengths_from_masks,
     get_tip_angles_linear_fit,
     fit_growth_rate,
@@ -358,7 +358,7 @@ Where θ₀ is the initial base angle from the first frame.
 
 **Example:**
 ```python
-from constants import Chauvet_Delta_tilde, Chauvet_beta_tilde
+from tropism_toolset import Chauvet_Delta_tilde, Chauvet_beta_tilde
 
 # First calculate Delta tilde
 Delta = Chauvet_Delta_tilde(
@@ -415,7 +415,7 @@ $$\tilde{\gamma} = \frac{L_c \cdot \tilde{\beta}}{R}$$
 
 **Example:**
 ```python
-from constants import Bastien_gamma_tilde
+from tropism_toolset import Bastien_gamma_tilde
 
 gamma_tilde = Bastien_gamma_tilde(
     beta_tilde=beta,
@@ -462,8 +462,8 @@ Where B = θ_tip - θ_base is the bending angle.
 
 **Example:**
 ```python
-from constants import Bastien_Delta_tilde
-from constants.geometric_calculations import (
+from tropism_toolset import Bastien_Delta_tilde
+from tropism_toolset.geometric_calculations import (
     get_tip_angles_linear_fit,
     get_lengths_from_centerlines
 )

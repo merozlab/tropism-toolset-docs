@@ -27,8 +27,8 @@ display_angles(
 
 **Example:**
 ```python
-from constants import get_angles
-from constants.display_utils import display_angles
+from tropism_toolset import get_angles
+from tropism_toolset.display_utils import display_angles
 
 angles = get_angles(frame_data)
 display_angles(angles, "Angle Distribution", "Point Index")
@@ -83,7 +83,7 @@ plot_centerline_data(
 
 **Example:**
 ```python
-from constants.display_utils import plot_centerline_data
+from tropism_toolset.display_utils import plot_centerline_data
 
 # Basic usage
 fig, ax = plot_centerline_data(
@@ -140,8 +140,8 @@ plot_theta_vs_arclength_over_time(
 
 **Example:**
 ```python
-from constants import get_angles_over_time, get_arclengths_over_time
-from constants.display_utils import plot_theta_vs_arclength_over_time
+from tropism_toolset import get_angles_over_time, get_arclengths_over_time
+from tropism_toolset.display_utils import plot_theta_vs_arclength_over_time
 
 angles = get_angles_over_time(data)
 arclengths = get_arclengths_over_time(data)
@@ -192,8 +192,8 @@ plot_timelapse_heatmap(
 
 **Example:**
 ```python
-from constants import x_y_to_s_theta
-from constants.display_utils import plot_timelapse_heatmap
+from tropism_toolset import x_y_to_s_theta
+from tropism_toolset.display_utils import plot_timelapse_heatmap
 
 # Convert to s,theta coordinates
 s_theta_data = x_y_to_s_theta(data, px_to_length=100)
@@ -252,7 +252,7 @@ plot_piecewise_saturating_exponential(
 
 **Example:**
 ```python
-from constants.fitting import fit_Lc
+from tropism_toolset.fitting import fit_Lc
 
 x0, Bl, A, Lc, r2 = fit_Lc(
     arclengths,
@@ -302,7 +302,7 @@ plot_saturating_exponential(
 
 **Example:**
 ```python
-from constants.fitting import fit_saturating_exponential
+from tropism_toolset.fitting import fit_saturating_exponential
 
 theta_inf, theta_0, tau, r2 = fit_saturating_exponential(
     frames,
@@ -355,7 +355,7 @@ plot_logistic_growth(
 
 **Example:**
 ```python
-from constants.fitting import fit_logistic_growth
+from tropism_toolset.fitting import fit_logistic_growth
 
 K, y_0, r, t_m, r2 = fit_logistic_growth(
     frames,
@@ -413,8 +413,8 @@ display_linear_fit(
 
 **Example:**
 ```python
-from constants.fitting import fit_linear
-from constants.display_utils import display_linear_fit
+from tropism_toolset.fitting import fit_linear
+from tropism_toolset.display_utils import display_linear_fit
 
 slope, r2, coeffs = fit_linear(frames, lengths, show=False)
 
@@ -471,8 +471,8 @@ display_piecewise_fit(
 
 **Example:**
 ```python
-from constants.fitting import fit_piecewise_linear_continuous
-from constants.display_utils import display_piecewise_fit
+from tropism_toolset.fitting import fit_piecewise_linear_continuous
+from tropism_toolset.display_utils import display_piecewise_fit
 
 m1, m2, x0, (p1, p2) = fit_piecewise_linear_continuous(
     frames,
@@ -534,9 +534,9 @@ display_steady_state_analysis(
 
 **Example:**
 ```python
-from constants import get_lengths_from_centerlines
-from constants.fitting import find_steady_state, smooth_centerlines
-from constants.display_utils import display_steady_state_analysis
+from tropism_toolset import get_lengths_from_centerlines
+from tropism_toolset.fitting import find_steady_state, smooth_centerlines
+from tropism_toolset.display_utils import display_steady_state_analysis
 
 times, lengths, _ = get_lengths_from_centerlines(data)
 
@@ -593,7 +593,7 @@ display_mask_stability_analysis(
 
 **Example:**
 ```python
-from constants.fitting import find_steady_state_from_masks
+from tropism_toolset.fitting import find_steady_state_from_masks
 
 scores, Tc, area = find_steady_state_from_masks(
     mask_dir='data/masks/',
@@ -633,8 +633,8 @@ display_length_over_time(
 
 **Example:**
 ```python
-from constants import get_lengths_from_centerlines
-from constants.display_utils import display_length_over_time
+from tropism_toolset import get_lengths_from_centerlines
+from tropism_toolset.display_utils import display_length_over_time
 
 times, lengths, units = get_lengths_from_centerlines(data)
 
@@ -676,7 +676,7 @@ plot_constant_histogram(
 
 **Example:**
 ```python
-from constants.display_utils import plot_constant_histogram
+from tropism_toolset.display_utils import plot_constant_histogram
 
 # Collect Lc values from multiple experiments
 results = {
@@ -728,8 +728,8 @@ create_video_with_colored_frames(
 
 **Example:**
 ```python
-from constants.fitting import find_steady_state_from_masks
-from constants.display_utils import create_video_with_colored_frames
+from tropism_toolset.fitting import find_steady_state_from_masks
+from tropism_toolset.display_utils import create_video_with_colored_frames
 
 # Find steady state
 scores, Tc, area = find_steady_state_from_masks(

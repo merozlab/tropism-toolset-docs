@@ -146,7 +146,7 @@ def analyze_experiment(exp_folder, output_dir):
 ```python
 from pathlib import Path
 import pandas as pd
-from constants import *
+from tropism_toolset import *
 
 def batch_extract_constants(exp_dir, px_to_m=100, period=900):
     """Extract Lc, gamma, beta for all experiments."""

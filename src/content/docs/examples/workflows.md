@@ -19,7 +19,7 @@ Extract all physical constants from a gravitropism experiment.
 ```python
 import pandas as pd
 import numpy as np
-from constants import (
+from tropism_toolset import (
     get_angles, get_arclengths,
     get_angles_over_time, get_arclengths_over_time,
     fit_Lc, get_gamma, get_beta,
@@ -159,7 +159,7 @@ print(f"\n✓ Results saved to analysis_results.csv")
 Analyze growth rate and angular velocity using the Chauvet model.
 
 ```python
-from constants import (
+from tropism_toolset import (
     fit_growth_rate, fit_angular_velocity,
     get_angles, get_arclengths
 )
@@ -310,7 +310,7 @@ print(f"\n✓ Saved to batch_results.csv")
 Use binary masks for steady state detection.
 
 ```python
-from constants import find_steady_state_from_masks, create_video_with_colored_frames
+from tropism_toolset import find_steady_state_from_masks, create_video_with_colored_frames
 from pathlib import Path
 
 # Mask directory
