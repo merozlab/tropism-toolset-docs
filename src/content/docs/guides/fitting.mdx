@@ -1,0 +1,167 @@
+---
+title: Fitting
+description: Extracting Physical Constants from Tropism Data
+---
+import Equation from '../../../components/Equation.astro';
+ 
+## Extracting Convergence Length (Lc)
+
+The convergence length is extracted by fitting a saturating exponential to angle vs. arc-length data.
+
+### Basic Usage
+
+```python
+from constants import fit_Lc, get_angles, get_arclengths
+import pandas as pd
+
+# Load data and get final frame (at steady state)
+data = pd.read_csv("centerlines.csv")
+final_frame = data['frame'].max()
+frame_data = data[data['frame'] == final_frame]
+
+# Calculate angles and arc lengths
+angles = get_angles(frame_data)
+arclengths = get_arclengths(frame_data) / 100  # Convert pixels to meters
+
+# Fit Lc
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    arclengths,
+    angles,
+    show=True,
+    crop_start=0,
+    crop_end=3
+)
+
+print(f"Convergence Length: {Lc:.4f} m")
+print(f"R²: {r_squared:.4f}")
+```
+
+### The Fitted Model
+
+The function fits a piecewise saturating exponential:
+
+<Equation>
+
+$$
+\theta(s) = \begin{cases}
+B_\ell & s < s_0 \\
+B_\ell + A(1 - e^{-(s-s_0)/L_c}) & s \geq s_0
+\end{cases}
+$$
+
+</Equation>
+
+Where:
+- $s_0$ (`x0`): Transition point (start of growth zone)
+- $B_\ell$ (`Bl`): Baseline angle
+- $A$ (`A`): Amplitude of response
+- $L_c$ (`Lc`): Convergence length
+
+### Customizing the Fit
+
+#### Initial Guess
+
+Provide starting values for the optimization:
+
+```python
+# Parameter order: [x0, Bl, A, Lc]
+initial_guess = [0.01, 0.0, 1.5, 0.05]
+
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    arclengths,
+    angles,
+    initial_guess=initial_guess,
+    show=True
+)
+```
+
+#### Parameter Bounds
+
+Constrain the fit with bounds:
+
+```python
+# Bounds: ([lower bounds], [upper bounds])
+bounds = (
+    [0.0, -np.pi/2, 0.0, 0.01],  # Lower bounds
+    [0.1, np.pi/2, np.pi, 0.20]   # Upper bounds
+)
+
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    arclengths,
+    angles,
+    bounds=bounds,
+    show=True
+)
+```
+
+#### Cropping Noisy Regions
+
+Remove noisy points at the extremities:
+
+```python
+# Crop 5 points from start, 10 from end
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    arclengths,
+    angles,
+    crop_start=5,
+    crop_end=10,
+    show=True
+)
+```
+
+### Assessing Fit Quality
+
+A good fit should have:
+- **R² > 0.95**: High quality
+- **R² 0.90-0.95**: Acceptable
+- **R² < 0.90**: Poor fit, check data quality
+
+```python
+if r_squared > 0.95:
+    print("✓ Excellent fit quality")
+elif r_squared > 0.90:
+    print("⚠ Acceptable fit, but review visually")
+else:
+    print("✗ Poor fit - check data quality or adjust parameters")
+```
+
+## Troubleshooting Poor Fits
+
+### Issue: Low R² value
+
+**Solutions:**
+1. Increase `crop_end` to remove noisy tip region
+2. Smooth data before fitting
+3. Check that you're using steady-state frame
+
+### Issue: Unrealistic Lc values
+
+**Solutions:**
+1. Provide better initial guess based on visual inspection
+2. Add parameter bounds to constrain optimization
+3. Check for data quality issues (gaps, discontinuities)
+
+### Issue: Fit doesn't converge
+
+**Solutions:**
+```python
+# Try different initial guesses
+guesses = [
+    [0.01, 0.0, 1.0, 0.03],
+    [0.02, 0.1, 1.5, 0.05],
+    [0.005, -0.1, 2.0, 0.08]
+]
+
+for i, guess in enumerate(guesses):
+    try:
+        x0, Bl, A, Lc, r_squared = fit_Lc(arclengths, angles, initial_guess=guess)
+        print(f"Guess {i}: Lc={Lc:.4f}, R²={r_squared:.4f}")
+    except:
+        print(f"Guess {i}: Failed")
+```
+
+## Next Steps
+
+- Learn about [Growth Analysis](/guides/growth-analysis/) to extract temporal dynamics
+- Explore [Mathematical Models](/guides/models/chauvet/) to understand the theory
+- Use [Batch Processing](/advanced/batch-processing/) for multiple experiments

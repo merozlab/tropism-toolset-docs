@@ -1,0 +1,598 @@
+---
+title: Finding β̃ and γ̃
+description: Complete guide to calculating gravitropic and proprioceptive sensitivity parameters using the Chauvet and Bastien models.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import RequiredData from '../../../components/RequiredData.astro';
+import DataItem from '../../../components/DataItem.astro';
+import Equation from '../../../components/Equation.astro';
+
+This guide demonstrates how to extract the gravitropic sensitivity parameter **$\tilde\beta$ (beta tilde)** and proprioceptive sensitivity parameter **$\tilde\gamma$ (gamma tilde)** from plant centerline data using the Chauvet and Bastien models.
+
+
+The guide extracts three primary constants:
+
+| Constant | Symbol | Units | Meaning |
+|----------|--------|-------|---------|
+| Convergence Length | $L_c$ | m | Spatial scale of gravitropic response |
+| Proprioceptive Sensitivity | $\tilde\gamma$ | dimensionless | Rate of curvature correction |
+| Gravitropic Sensitivity | $\tilde\beta$ | dimensionless | Spatial sensitivity to gravity |
+
+---
+
+
+
+## Mathematical Derivation
+
+:::tip[Read full derivation]
+Read the full derivation of the formulas used to calculate $\tilde\beta$ and $\tilde\gamma$ from experimental data in the [The AC and ACĖ models](../models/the-ac-and-ace-models) section.
+:::
+
+## Prerequisites
+
+<RequiredData
+  title="Required Experimental Data"
+>
+To extract $\tilde\beta$ and $\tilde\gamma$, you need the following measurements from your experiment:
+  <DataItem
+    name="Centerline coordinates"
+    value="CSV file with x, y pixel positions and frame numbers for each time point"
+    required
+  />
+  <DataItem
+    name="Pixel-to-meter conversion"
+    value="Spatial calibration factor (e.g., 35 pixels = 1 mm = 0.001 m)"
+    units="px/m"
+    required
+  />
+  <DataItem
+    name="Frame interval"
+    value="Time between consecutive frames (e.g., 9 minutes = 540 seconds)"
+    units="s/frame"
+    required
+  />
+  <DataItem
+    name="Organ radius"
+    value="Physical radius of the plant organ (e.g., R = 2 mm = 0.002 m)"
+    units="m"
+    required
+  />
+  <DataItem
+    name="Steady-state frame"
+    value="Frame number where the plant has reached gravitropic equilibrium (typically the last frame after sufficient growth time)"
+    required
+  />
+  <DataItem
+    name="Tip percentage"
+    value="Percentage of centerline to analyze for tip angles (default: 30%)"
+    units="%"
+  />
+</RequiredData>
+
+## Step-by-Step Workflow
+
+### Step 1: Load and Prepare Data
+
+First, load your centerline data and apply necessary transformations:
+
+```python
+import pandas as pd
+from tropism_toolset import (
+    flip_centerlines_horizontal,
+    convert_centerline_units,
+    plot_centerline_data,
+    display_centerline_endpoints
+)
+
+# Load centerline data
+df = pd.read_csv('experiment_centerlines.csv')
+
+# Flip if needed for correct orientation
+df = flip_centerlines_horizontal(df)
+
+# Convert to SI units
+# Example: 35 pixels = 1 mm, 9 minutes per frame
+df = convert_centerline_units(
+    df,
+    px_to_m=35 / 1_000_000,  # 35 px = 1 mm = 0.001 m
+    frame_to_s=9 * 60         # 9 minutes = 540 seconds
+)
+
+# Verify orientation
+display_centerline_endpoints(df, frame=20, display=True)
+
+# Visualize full trajectory
+plot_centerline_data(df)
+```
+
+**Key Points:**
+- Use `flip_centerlines_horizontal()` to correct left-right orientation if needed
+- Convert all spatial data to meters and temporal data to seconds
+- Visual inspection ensures centerline starts at base and ends at tip
+
+---
+
+### Step 2: Calculate Growth Rate $\frac{dL}{dt}$
+
+Extract the elongation rate from length time series:
+
+```python
+from tropism_toolset import get_lengths_from_centerlines, fit_growth_rate
+
+# Get length time series with smoothing to reduce noise
+length_data = get_lengths_from_centerlines(df, smooth=True)
+
+# Fit linear model to extract growth rate
+dL_dt = fit_growth_rate(
+    length_data,
+    display=True,
+    save_path='growth_rate.png',
+    title='Growth Rate Analysis'
+)
+
+print(f"Growth rate: {dL_dt:.6e} m/s")
+```
+
+**Output:**
+- `dL_dt`: Growth rate in m/s
+- Plot showing linear fit to length vs. time
+
+**Notes:**
+- `smooth=True` applies Savitzky-Golay smoothing to reduce centerline detection noise
+- Length is calculated from the total arc length of the centerline
+- Linear fit works well for steady growth phases
+
+---
+
+### Step 3: Calculate Angular Velocity $\frac{dθ}{dt}$
+
+Extract the rate of tip angle change using linear fit method:
+
+```python
+from tropism_toolset import get_tip_angles_linear_fit, fit_angular_velocity
+
+# Calculate tip angles with outlier filtering
+angle_data = get_tip_angles_linear_fit(
+    df,
+    percent=30,           # Use top 30% of centerline
+    side='tip',
+    bounds=(-2.5, 2.5)   # Remove outliers beyond ±2.5 radians
+)
+
+# Fit piecewise linear model to extract angular velocity
+dtheta_dt = fit_angular_velocity(
+    angle_data,
+    display=True,
+    save_path='angular_velocity.png',
+    title='Tip Angular Velocity'
+)
+
+print(f"Angular velocity: {dtheta_dt:.6e} rad/s")
+```
+
+**Output:**
+- `dtheta_dt`: Angular velocity in rad/s
+- Plot showing piecewise linear fit with two growth phases
+
+**Key Parameters:**
+- `percent=30`: Analyzes the top 30% of the centerline (adjust based on your data)
+- `bounds=(-2.5, 2.5)`: Filters out unrealistic angle values that may result from detection errors
+- The piecewise fit captures the initial rapid reorientation phase
+
+
+---
+
+### Step 4: Calculate Chauvet Differential Growth $\tilde\Delta$
+
+Combine growth rate and angular velocity to get the differential growth parameter:
+
+```python
+from tropism_toolset import Chauvet_Delta_tilde
+
+# Organ radius in meters (e.g., 2 mm = 0.002 m)
+R = 0.002
+
+# Calculate Delta tilde
+Delta = Chauvet_Delta_tilde(
+    dtheta_dt=dtheta_dt,
+    dL_dt=dL_dt,
+    R=R,
+    display=True
+)
+
+print(f"Chauvet Δ̃: {Delta:.6f}")
+```
+
+**Formula:**
+
+$$
+\tilde{\Delta} = R \times \frac{d\theta/dt}{dL/dt}
+$$
+
+**Output:**
+- `Delta`: Dimensionless differential growth parameter
+- Diagnostic information about the calculation
+
+**Physical Interpretation:**
+- $\tilde\Delta$ represents the normalized relationship between bending rate and growth rate
+- Larger values indicate stronger coupling between growth and curvature
+
+---
+
+### Step 5: Calculate Chauvet $\tilde\beta$
+
+Derive gravitropic sensitivity from $\tilde\Delta$ and initial base angle:
+
+```python
+from tropism_toolset import Chauvet_beta_tilde
+
+# Calculate beta tilde
+beta = Chauvet_beta_tilde(
+    Delta_tilde=Delta,
+    data=df,
+    display=True
+)
+
+print(f"Gravitropic sensitivity (β̃): {beta:.6f}")
+```
+
+**Formula:**
+
+$$
+\tilde{\beta} = \frac{\tilde{\Delta}}{\sin(\theta_0)}
+$$
+
+Where $θ₀$ is the initial base angle calculated from the first frame.
+
+**Output:**
+- `beta`: Dimensionless gravitropic sensitivity parameter
+- The function automatically calculates $\sin(θ₀)$ from your data
+
+**Physical Interpretation:**
+- $\tilde\beta$ quantifies the plant's ability to sense and respond to gravitational inclination
+- Higher values indicate stronger gravitropic response
+
+---
+
+### Step 6: Fit Convergence Length ($L_c$)
+
+Extract the characteristic length scale from the steady-state angle profile:
+
+```python
+from tropism_toolset import x_y_to_s_theta, fit_Lc
+
+# Get the last (steady-state) frame
+last_frame_n = int(df['frame'].max())
+last_frame = df[df['frame'] == last_frame_n].reset_index(drop=True)
+
+# Convert to arc-length representation
+s_theta_data = x_y_to_s_theta(last_frame)
+
+# Fit piecewise constant-exponential model
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    s_theta_data,
+    display=True,
+    save_path='Lc_fit.png'
+)
+
+print(f"Convergence length: {Lc:.4f} m")
+print(f"R² goodness of fit: {r_squared:.4f}")
+```
+
+**Model:**
+
+$$
+\theta(s) = \begin{cases}
+B_\ell & s < s_0 \\
+B_\ell + A(1 - e^{-(s-s_0)/L_c}) & s \geq s_0
+\end{cases}
+$$
+
+**Output:**
+- `Lc`: Convergence length in meters
+- `x0`, `Bl`, `A`: Other fitted parameters
+- `r_squared`: Quality of fit (should be > 0.9)
+- Plot showing angle vs. arc length with fitted curve
+
+**Tips for Better Fits:**
+- Use the steady-state frame (last frame after growth stabilization)
+- Crop noisy tip points if needed: `fit_Lc(s_theta_data, crop_end=3)`
+- For difficult fits, provide initial guesses or bounds (see Advanced Usage below)
+
+---
+
+### Step 7: Calculate Bastien $\tilde\gamma$
+
+Derive proprioceptive sensitivity from $\tilde\beta$ and Lc:
+
+```python
+from tropism_toolset import Bastien_gamma_tilde
+
+# Calculate gamma tilde
+gamma = Bastien_gamma_tilde(
+    beta_tilde=beta,
+    Lc=Lc,
+    R=R
+)
+
+print(f"Proprioceptive sensitivity ($\tilde\gamma$): {gamma:.6f}")
+```
+
+**Formula:**
+
+$$
+\tilde{\gamma} = \frac{L_c \cdot \tilde{\beta}}{R}
+$$
+
+**Output:**
+- `gamma`: Dimensionless proprioceptive sensitivity parameter
+
+**Physical Interpretation:**
+- $\tilde\gamma$ quantifies the plant's ability to sense its own curvature
+- Represents the spatial extent of proprioceptive sensing relative to organ radius
+
+---
+
+## Complete Analysis Script
+
+Here's a complete script that processes a single experiment:
+
+```python
+import pandas as pd
+from tropism_toolset import (
+    flip_centerlines_horizontal,
+    convert_centerline_units,
+    plot_centerline_data,
+    get_lengths_from_centerlines,
+    fit_growth_rate,
+    get_tip_angles_linear_fit,
+    fit_angular_velocity,
+    Chauvet_Delta_tilde,
+    Chauvet_beta_tilde,
+    x_y_to_s_theta,
+    fit_Lc,
+    Bastien_gamma_tilde
+)
+
+# Configuration
+R = 0.002  # Organ radius in meters (2 mm)
+TIP_PERCENT = 30  # Percentage of tip to analyze
+PX_TO_M = 35 / 1_000_000  # 35 pixels = 1 mm
+FRAME_TO_S = 9 * 60  # 9 minutes per frame
+
+# Load and prepare data
+df = pd.read_csv('experiment_centerlines.csv')
+df = flip_centerlines_horizontal(df)
+df = convert_centerline_units(df, px_to_m=PX_TO_M, frame_to_s=FRAME_TO_S)
+
+# Calculate growth rate
+length_data = get_lengths_from_centerlines(df, smooth=True)
+dL_dt = fit_growth_rate(length_data, display=True, save_path='growth_rate.png')
+
+# Calculate angular velocity
+angle_data = get_tip_angles_linear_fit(
+    df, percent=TIP_PERCENT, side='tip', bounds=(-2.5, 2.5)
+)
+dtheta_dt = fit_angular_velocity(
+    angle_data, display=True, save_path='angular_velocity.png'
+)
+
+# Calculate Delta and Beta
+Delta = Chauvet_Delta_tilde(dtheta_dt, dL_dt, R=R, display=True)
+beta = Chauvet_beta_tilde(Delta, df, display=True)
+
+# Fit convergence length
+last_frame_n = int(df['frame'].max())
+last_frame = df[df['frame'] == last_frame_n].reset_index(drop=True)
+s_theta_data = x_y_to_s_theta(last_frame)
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    s_theta_data, display=True, save_path='Lc_fit.png'
+)
+
+# Calculate Gamma
+gamma = Bastien_gamma_tilde(beta_tilde=beta, Lc=Lc, R=R)
+
+# Print results
+print("\n" + "="*60)
+print("GRAVITROPIC AND PROPRIOCEPTIVE PARAMETERS")
+print("="*60)
+print(f"Growth rate (dL/dt):        {dL_dt:.6e} m/s")
+print(f"Angular velocity (dθ/dt):   {dtheta_dt:.6e} rad/s")
+print(f"Δ̃ (Delta tilde):            {Delta:.6f}")
+print(f"β̃ (Beta tilde):             {beta:.6f}")
+print(f"Lc (Convergence length):    {Lc:.4f} m")
+print(f"γ̃ (Gamma tilde):            {gamma:.6f}")
+print(f"Lc fit R²:                  {r_squared:.4f}")
+print("="*60)
+```
+
+---
+
+## Batch Processing Multiple Experiments
+
+For analyzing multiple experiments systematically:
+
+```python
+import pandas as pd
+from pathlib import Path
+
+experiments = ['exp1', 'exp2', 'exp3']
+results = []
+
+for exp_name in experiments:
+    print(f"\nProcessing {exp_name}...")
+
+    # Load data
+    df = pd.read_csv(f'{exp_name}_centerlines.csv')
+
+    # Run analysis pipeline (use code from above)
+    # ...
+
+    # Store results
+    results.append({
+        'experiment': exp_name,
+        'dL_dt': dL_dt,
+        'dtheta_dt': dtheta_dt,
+        'Delta': Delta,
+        'Beta': beta,
+        'Lc': Lc,
+        'Gamma': gamma
+    })
+
+# Export to CSV
+df_results = pd.DataFrame(results)
+df_results.to_csv('batch_analysis_results.csv', index=False)
+
+# Calculate summary statistics
+print("\nSummary Statistics:")
+for param in ['Delta', 'Beta', 'Lc', 'Gamma']:
+    values = df_results[param].values
+    print(f"{param}:")
+    print(f"  Mean:   {values.mean():.6e}")
+    print(f"  Std:    {values.std():.6e}")
+    print(f"  Median: {np.median(values):.6e}")
+```
+
+---
+
+## Advanced Usage
+
+### Custom Lc Fit Parameters
+
+For difficult datasets, provide initial guesses or bounds:
+
+```python
+# Initial guess: [x0, Bl, A, Lc]
+initial_guess = [0.01, -1.5, 1.0, 0.04]
+
+# Bounds: ([lower bounds], [upper bounds])
+bounds = (
+    [0.0, -3.0, -2.0, 0.01],   # Lower bounds
+    [0.05, 0.0, 3.0, 0.1]      # Upper bounds
+)
+
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    s_theta_data,
+    initial_guess=initial_guess,
+    bounds=bounds,
+    display=True
+)
+```
+
+### Alternative Angular Velocity Method
+
+Use exponential fitting instead of piecewise linear:
+
+```python
+from tropism_toolset import fit_angular_velocity_exponential
+
+# Fits: θ(t) = θ∞ - (θ∞ - θ₀)e^(-t/τ)
+dtheta_dt = fit_angular_velocity_exponential(
+    angle_data,
+    show=True,
+    title='Saturating Exponential Fit'
+)
+```
+
+This returns the initial angular velocity: (θ∞ - θ₀)/τ
+
+### Cropping Noisy Data
+
+Remove noisy points from Lc fitting:
+
+```python
+# Crop 5 points from start, 3 from end
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    s_theta_data,
+    crop_start=5,
+    crop_end=3,
+    display=True
+)
+```
+
+---
+
+## Troubleshooting
+
+### Poor Lc Fit (R² < 0.9)
+
+**Causes and Solutions:**
+
+1. **Noisy tip/base regions**
+   - Use `crop_start` and `crop_end` parameters
+   - Increase smoothing: `get_lengths_from_centerlines(df, smooth=True, window_length=7)`
+
+2. **Plant not at steady state**
+   - Verify last frame shows stable angle profile
+   - Use a later frame if growth hasn't stabilized
+
+3. **Initial guess far from solution**
+   - Provide `initial_guess` based on visual inspection of angle vs. arc length plot
+   - Check bounds aren't too restrictive
+
+### Unrealistic Parameter Values
+
+**Common Issues:**
+
+1. **Negative Lc or very large Lc**
+   - Check unit conversion is correct
+   - Verify centerline orientation (base → tip)
+   - Ensure steady-state frame is used
+
+2. **Extremely small or large Δ̃**
+   - Verify growth rate and angular velocity units match (both in SI: m/s and rad/s)
+   - Check radius R is in meters
+
+3. **$	ilde\beta$ or $\tilde\gamma$ out of expected range**
+   - Review each calculation step
+   - Ensure all intermediate values (dL/dt, dθ/dt, Lc) are reasonable
+
+### Outliers in Angle Data
+
+Use bounds to filter:
+
+```python
+angle_data = get_tip_angles_linear_fit(
+    df,
+    percent=30,
+    side='tip',
+    bounds=(-2.5, 2.5)  # Adjust range as needed
+)
+```
+
+---
+
+## Expected Value Ranges
+
+Typical ranges for plant roots and shoots:
+
+| Parameter | Typical Range | Units |
+|-----------|---------------|-------|
+| dL/dt | 10⁻⁷ to 10⁻⁵ | m/s |
+| dθ/dt | 10⁻⁵ to 10⁻³ | rad/s |
+| Δ̃ | 0.1 to 10 | dimensionless |
+| $	ilde\beta$ | 0.1 to 10 | dimensionless |
+| Lc | 0.01 to 0.1 | meters |
+| $\tilde\gamma$ | 1 to 100 | dimensionless |
+
+**Note:** These are rough guidelines. Actual values vary significantly by species, organ type, and experimental conditions.
+
+---
+
+## See Also
+
+<CardGrid>
+  <Card title="Constants Extraction" icon="document">
+    [Complete guide to extracting all physical constants](/guides/constants-extraction/)
+  </Card>
+  <Card title="Growth Analysis" icon="rocket">
+    [Analyzing growth dynamics and rates](/guides/growth-analysis/)
+  </Card>
+  <Card title="API Reference" icon="open-book">
+    [Detailed function documentation](/reference/constants/)
+  </Card>
+  <Card title="Mathematical Models" icon="star">
+    [Understanding the Chauvet and Bastien models](/models/chauvet/)
+  </Card>
+</CardGrid>

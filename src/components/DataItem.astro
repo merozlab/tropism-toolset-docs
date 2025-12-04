@@ -1,0 +1,113 @@
+---
+/**
+ * DataItem Component
+ *
+ * Individual data item within RequiredData component.
+ * Shows measurement name, description/value, and whether it's required or optional.
+ *
+ * Usage:
+ * <DataItem name="Pixel-to-meter conversion" value="e.g., 35 pixels = 1 mm" required />
+ * <DataItem name="Frame interval" value="Time between frames in seconds" />
+ */
+
+interface Props {
+  name: string;
+  value: string;
+  required?: boolean;
+  units?: string;
+}
+
+const {
+  name,
+  value,
+  required = false,
+  units
+} = Astro.props;
+---
+
+<div class="data-item" class:list={[{ required }]}>
+  <div class="data-item-header">
+    <span class="data-name">{name}</span>
+    {units && <span class="data-units">[{units}]</span>}
+    <span class="data-badge" class:list={[required ? 'badge-required' : 'badge-optional']}>
+      {required ? 'Required' : 'Optional'}
+    </span>
+  </div>
+  <div class="data-value">{value}</div>
+</div>
+
+<style>
+  .data-item {
+    background: var(--sl-color-bg);
+    border-left: 3px solid var(--sl-color-gray-5);
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+    transition: border-color 0.2s ease;
+  }
+
+  .data-item:hover {
+    border-left-color: var(--sl-color-accent);
+  }
+
+  .data-item.required {
+    border-left-color: var(--sl-color-orange);
+  }
+
+  .data-item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+    flex-wrap: wrap;
+  }
+
+  .data-name {
+    font-weight: 600;
+    color: var(--sl-color-white);
+    font-size: 0.95rem;
+  }
+
+  .data-units {
+    font-size: 0.85rem;
+    color: var(--sl-color-gray-3);
+    font-family: var(--sl-font-mono);
+  }
+
+  .data-badge {
+    margin-left: auto;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+  }
+
+  .badge-required {
+    background: var(--sl-color-orange);
+    color: var(--sl-color-black);
+  }
+
+  .badge-optional {
+    background: var(--sl-color-gray-6);
+    color: var(--sl-color-gray-2);
+  }
+
+  .data-value {
+    color: var(--sl-color-gray-2);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .data-item-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+
+    .data-badge {
+      margin-left: 0;
+    }
+  }
+</style>

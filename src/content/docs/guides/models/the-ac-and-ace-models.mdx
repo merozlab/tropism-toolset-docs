@@ -1,0 +1,530 @@
+---
+title: The AC and ACĖ models
+description: Theoretical foundation for extracting dimensionless gravitropic and proprioceptive sensitivities from experimental data.
+---
+
+import Equation from '../../../../components/Equation.astro';
+
+This guide presents the mathematical derivation connecting experimentally measurable quantities (tip angle velocity, growth rate, convergence length) to the fundamental gravitropic parameters **β̃** and **γ̃**.
+
+## Overview
+
+The derivation progresses through three key models:
+1. **AC Model** (Bastien 2013): Curvature dynamics without growth
+2. **ACĖ Model** (Bastien 2014): Introducing differential growth
+3. **Chauvet Approximations** (Chauvet 2016): Simplifications for slender organs
+
+---
+
+## Starting Point: AC Model (Bastien 2013)
+
+The AC (Angle-Curvature) model describes gravitropic response dynamics without considering growth:
+
+<Equation>
+
+$$\frac{\partial \kappa}{\partial t} = -\beta \sin\theta - \gamma \kappa$$
+
+</Equation>
+
+**Parameters:**
+- **κ**: Curvature (m⁻¹)
+- **θ**: Angle from vertical (rad)
+- **β**: Gravitropic sensitivity (m⁻¹·s⁻¹)
+- **γ**: Proprioceptive sensitivity (s⁻¹)
+
+**Physical Interpretation:**
+- The **gravitropic term** (−β sin θ) drives curvature change proportional to inclination
+- The **proprioceptive term** (−γ κ) opposes existing curvature through self-sensing
+
+This model successfully describes the steady-state angle profile but cannot account for growth-driven bending.
+
+---
+
+## Introducing Growth: ACĖ Model (Bastien 2014)
+
+Real plant organs grow while bending. Consider differential growth across a stem of radius **R**, with strain rates **ε̇₁** and **ε̇₂** on opposite sides.
+
+### Defining Growth Parameters
+
+The **mean elongation rate**:
+
+<Equation>
+
+$$\dot{E} = \frac{\dot{\varepsilon}_1 + \dot{\varepsilon}_2}{2}$$
+
+</Equation>
+
+The **relative differential growth** (dimensionless):
+
+<Equation>
+
+$$\tilde{\Delta} = \frac{\dot{\varepsilon}_2 - \dot{\varepsilon}_1}{\dot{\varepsilon}_1 + \dot{\varepsilon}_2}$$
+
+</Equation>
+
+**Physical Meaning:**
+- Δ̃ = 0: symmetric growth (no bending)
+- Δ̃ > 0: faster growth on side 2 (bending toward side 1)
+- Δ̃ < 0: faster growth on side 1 (bending toward side 2)
+
+### Material Derivative of Curvature
+
+The curvature evolves due to both local dynamics and advection by growth:
+
+<Equation>
+
+$$\frac{D\kappa}{Dt} = \frac{\partial\kappa}{\partial t} + v_g \frac{\partial\kappa}{\partial s}$$
+
+</Equation>
+
+For differential growth across radius R:
+
+<Equation>
+
+$$\frac{D\kappa}{Dt} \sim \frac{\tilde{\Delta}\, \dot{E}}{R}$$
+
+</Equation>
+
+### Dimensionless Sensitivities
+
+To make the model dimensionless, define rescaled sensitivities:
+
+<Equation>
+
+$$\boxed{\tilde{\beta} = \frac{\beta R}{\dot{E}}, \qquad \tilde{\gamma} = \frac{\gamma}{\dot{E}}}$$
+
+</Equation>
+
+**Why These Definitions?**
+- Both β̃ and γ̃ are **dimensionless**
+- They represent sensitivity **relative to growth rate**
+- β̃ also accounts for organ thickness (radius R)
+
+### ACĖ Growth Equation
+
+Combining the gravitropic/proprioceptive response with growth:
+
+<Equation>
+
+$$\tilde{\Delta} = -\tilde{\beta}\sin\theta - \tilde{\gamma}R\kappa$$
+
+</Equation>
+
+This equation states: **differential growth rate = gravitropic response + proprioceptive response**.
+
+---
+
+## Approximations for Slender Organs (Chauvet 2016)
+
+For practical measurements on growing plant organs, Chauvet introduced key simplifications.
+
+### Assumption 1: Uniform Curvature in Growth Zone
+
+If the growth zone length is **L_gz** and curvature varies slowly:
+
+<Equation>
+
+$$\frac{\partial\kappa}{\partial s} \approx 0 \quad \text{(uniform curvature)}$$
+
+</Equation>
+
+This means the material derivative simplifies:
+
+<Equation>
+
+$$\frac{D\kappa}{Dt} \approx \frac{\partial\kappa}{\partial t}$$
+
+</Equation>
+
+### Assumption 2: Slender Organ
+
+For thin organs where radius R ≪ Lgz:
+
+<Equation>
+
+$$R\kappa \ll 1 \quad \text{(slender organ approximation)}$$
+
+</Equation>
+
+This allows us to **neglect the proprioceptive term** during the initial bending phase.
+
+### Relating Measurable Quantities
+
+With these approximations, we can express growth rate and curvature in terms of **measurable quantities**:
+
+**Growth rate from total length:**
+
+<Equation>
+
+$$\dot{E} \approx \frac{1}{L_{gz}}\frac{dL}{dt}$$
+
+</Equation>
+
+**Curvature from tip and base angles:**
+
+<Equation>
+
+$$\kappa \approx \frac{\theta_{\text{tip}} - \theta_0}{L_{gz}}$$
+
+</Equation>
+
+### The Chauvet Formula for Δ̃
+
+Substituting these into the growth equation and neglecting the proprioceptive term:
+
+<Equation>
+
+$$\boxed{\tilde{\Delta} = R\,\frac{d\theta_{\text{tip}}/dt}{dL/dt}}$$
+
+</Equation>
+
+**This is the key experimental formula!** It relates the dimensionless differential growth parameter to:
+- **R**: Organ radius (measured directly)
+- **dθ_tip/dt**: Angular velocity of the tip (from time-lapse imaging)
+- **dL/dt**: Elongation rate (from time-lapse imaging)
+
+---
+
+## Extracting β̃: The Sine Law (Chauvet 2016)
+
+At **early times** when curvature is still small (R κ ≈ 0), the proprioceptive term vanishes:
+
+<Equation>
+
+$$\tilde{\Delta} \approx -\tilde{\beta}\sin\theta_{\text{init}}$$
+
+</Equation>
+
+Rearranging:
+
+<Equation>
+
+$$\boxed{\tilde{\beta} = \frac{\tilde{\Delta}}{\sin\theta_{\text{init}}} = \frac{R}{\sin\theta_{\text{init}}} \cdot \frac{d\theta_{\text{tip}}/dt}{dL/dt}}$$
+
+</Equation>
+
+### Experimental Protocol
+
+**Single Initial Angle:**
+If you have only one initial inclination θ_init:
+
+<Equation>
+
+$$\tilde{\beta} = \frac{\tilde{\Delta}}{\sin\theta_{\text{init}}}$$
+
+</Equation>
+
+**Multiple Initial Angles (more robust):**
+Perform experiments with different initial inclinations and plot Δ̃ vs. sin(θ_init). The slope gives β̃:
+
+<Equation>
+
+$$\tilde{\Delta} = -\tilde{\beta}\sin\theta_{\text{init}} \quad \Rightarrow \quad \text{slope} = -\tilde{\beta}$$
+
+</Equation>
+
+This approach averages out measurement noise and validates the sine law assumption.
+
+---
+
+## Extracting γ̃: Convergence Length Method (Bastien 2013)
+
+At **steady state** (long times after reorientation), the plant reaches gravitropic equilibrium where:
+
+<Equation>
+
+$$\frac{D\kappa}{Dt} = 0$$
+
+</Equation>
+
+The AC model predicts an **exponential angle profile**:
+
+<Equation>
+
+$$\theta(s) = \theta_0 \, e^{-\frac{\beta}{\gamma}(s - s_0)} = \theta_0 \, e^{-\frac{s - s_0}{L_c}}$$
+
+</Equation>
+
+### Convergence Length L_c
+
+The **convergence length** is defined as:
+
+<Equation>
+
+$$L_c = \frac{\gamma}{\beta}$$
+
+</Equation>
+
+**Physical Meaning:**
+- L_c is the spatial scale over which the angle decays
+- Larger L_c → gravitropic response extends over larger portion of the organ
+- Smaller L_c → gravitropic response is localized near the tip
+
+### Relating L_c to Dimensionless Parameters
+
+From the definitions of β̃ and γ̃:
+
+<Equation>
+
+$$L_c = \frac{\gamma}{\beta} = \frac{\tilde{\gamma}\dot{E}}{\tilde{\beta}\dot{E}/R} = \frac{R\tilde{\gamma}}{\tilde{\beta}}$$
+
+</Equation>
+
+Solving for γ̃:
+
+<Equation>
+
+$$\boxed{\tilde{\gamma} = \frac{L_c \, \tilde{\beta}}{R}}$$
+
+</Equation>
+
+### Experimental Procedure
+
+1. **Identify steady-state frame** (last frame after growth has stabilized)
+2. **Convert to arc-length coordinates** (s, θ)
+3. **Fit exponential decay** model to extract L_c
+4. **Calculate γ̃** using the formula above
+
+---
+
+## Complete Experimental Workflow
+
+### Step 1: Measure Time Series
+
+From time-lapse imaging, extract:
+- Centerline coordinates (x, y) at each frame
+- Convert to arc length s and angle θ
+
+### Step 2: Calculate Growth Rate
+
+<Equation>
+
+$$\frac{dL}{dt} = \text{slope of } L(t)$$
+
+</Equation>
+
+Fit linear model to length vs. time during active growth phase.
+
+### Step 3: Calculate Angular Velocity
+
+<Equation>
+
+$$\frac{d\theta_{\text{tip}}}{dt} = \text{slope of } \theta_{\text{tip}}(t)$$
+
+</Equation>
+
+Fit piecewise linear or exponential model to tip angle vs. time.
+
+### Step 4: Calculate Δ̃
+
+<Equation>
+
+$$\tilde{\Delta} = R\,\frac{d\theta_{\text{tip}}/dt}{dL/dt}$$
+
+</Equation>
+
+Use measured organ radius R (e.g., R = 0.002 m for 2 mm diameter).
+
+### Step 5: Calculate β̃
+
+<Equation>
+
+$$\tilde{\beta} = \frac{\tilde{\Delta}}{\sin\theta_{\text{init}}}$$
+
+</Equation>
+
+Use the mean angle of the base region in the first frame as θ_init.
+
+### Step 6: Fit Convergence Length
+
+From steady-state frame, fit:
+
+<Equation>
+
+$$\theta(s) = B_\ell + A\left(1 - e^{-(s-s_0)/L_c}\right)$$
+
+</Equation>
+
+This piecewise model accounts for a constant base region before the exponential decay begins.
+
+### Step 7: Calculate γ̃
+
+<Equation>
+
+$$\tilde{\gamma} = \frac{L_c \, \tilde{\beta}}{R}$$
+
+</Equation>
+
+---
+
+## Dimensional Analysis
+
+Let's verify the dimensions are consistent:
+
+### Original Parameters
+
+| Parameter | Units | Physical Meaning |
+|-----------|-------|------------------|
+| β | m⁻¹·s⁻¹ | Gravitropic sensitivity |
+| γ | s⁻¹ | Proprioceptive sensitivity |
+| R | m | Organ radius |
+| Ė | s⁻¹ | Strain rate (elongation) |
+
+### Dimensionless Parameters
+
+<Equation>
+
+$$\tilde{\beta} = \frac{\beta R}{\dot{E}} = \frac{[\text{m}^{-1}\text{s}^{-1}][\text{m}]}{[\text{s}^{-1}]} = \text{dimensionless} \quad \checkmark$$
+
+</Equation>
+
+<Equation>
+
+$$\tilde{\gamma} = \frac{\gamma}{\dot{E}} = \frac{[\text{s}^{-1}]}{[\text{s}^{-1}]} = \text{dimensionless} \quad \checkmark$$
+
+</Equation>
+
+### Convergence Length
+
+<Equation>
+
+$$L_c = \frac{\gamma}{\beta} = \frac{[\text{s}^{-1}]}{[\text{m}^{-1}\text{s}^{-1}]} = [\text{m}] \quad \checkmark$$
+
+</Equation>
+
+<Equation>
+
+$$\tilde{\gamma} = \frac{L_c \tilde{\beta}}{R} = \frac{[\text{m}][\text{dimensionless}]}{[\text{m}]} = \text{dimensionless} \quad \checkmark$$
+
+</Equation>
+
+---
+
+## Key Assumptions and Limitations
+
+### Assumptions Required for This Derivation
+
+1. **Uniform curvature in growth zone**: ∂κ/∂s ≈ 0
+   - Valid when growth zone is relatively short
+   - Breaks down if curvature varies strongly along the organ
+
+2. **Slender organ**: R κ ≪ 1
+   - Valid for thin roots/shoots relative to their curvature
+   - Allows neglecting proprioception during initial bending
+
+3. **Early-time sine law**: R κ ≈ 0 when extracting β̃
+   - Valid during initial reorientation before strong bending
+   - May require using only early time points
+
+4. **Steady-state exponential profile**: For extracting L_c
+   - Requires plant reaches gravitropic equilibrium
+   - Need sufficient time for stabilization
+
+### When These Assumptions Break Down
+
+**Thick organs (large R):**
+- R κ no longer ≪ 1
+- Proprioceptive term cannot be neglected
+- Need full ACĖ model solution
+
+**Short growth zones with strong curvature gradients:**
+- ∂κ/∂s not negligible
+- Advection term becomes important
+- Need spatial resolution of curvature profile
+
+**Transient dynamics:**
+- If plant never reaches steady state (e.g., circumnutation)
+- Need time-dependent solutions
+
+---
+
+## Biological Interpretation
+
+### What β̃ Tells Us
+
+<Equation>
+
+$$\tilde{\beta} = \frac{\beta R}{\dot{E}}$$
+
+</Equation>
+
+**High β̃** (> 5):
+- Strong gravitropic response relative to growth
+- Plant responds quickly to inclination
+- Typical of strongly gravitropic roots
+
+**Low β̃** (< 1):
+- Weak gravitropic response relative to growth
+- Plant is "growth-dominated"
+- May indicate modified gravitropism (e.g., mutants)
+
+### What γ̃ Tells Us
+
+<Equation>
+
+$$\tilde{\gamma} = \frac{\gamma}{\dot{E}}$$
+
+</Equation>
+
+**High γ̃** (> 20):
+- Strong proprioceptive sensing relative to growth
+- Plant strongly resists curvature
+- Short convergence length (localized graviresponse)
+
+**Low γ̃** (< 5):
+- Weak proprioceptive sensing relative to growth
+- Plant allows more curvature
+- Long convergence length (extended graviresponse)
+
+### The Ratio: Convergence Length
+
+<Equation>
+
+$$L_c = \frac{R\tilde{\gamma}}{\tilde{\beta}}$$
+
+</Equation>
+
+This ratio sets the **spatial scale** of gravitropic control:
+- L_c ~ organ length: graviresponse extends over whole organ
+- L_c ≪ organ length: graviresponse localized to tip region
+
+---
+
+## Historical Context
+
+### Bastien et al. (2013): AC Model
+
+Introduced the angle-curvature framework connecting gravitropic and proprioceptive sensing, predicting exponential steady-state profiles.
+
+**Key Innovation:** Separated gravitropic sensing (sin θ) from proprioceptive sensing (κ).
+
+### Bastien et al. (2014): ACĖ Model
+
+Extended the model to include growth, introducing dimensionless sensitivities and the differential strain Δ̃.
+
+**Key Innovation:** Showed how differential growth drives bending through the material derivative of curvature.
+
+### Chauvet et al. (2016): Experimental Validation
+
+Validated the sine law experimentally and provided practical methods for extracting β̃ from experiments.
+
+**Key Innovation:** Simplified formulas for slender organs, enabling experimental measurements from time-lapse imaging alone.
+
+---
+
+## See Also
+
+- [Finding β̃ and γ̃ - Practical Guide](/guides/finding-beta-gamma/) - Step-by-step experimental workflow
+- [Chauvet Model](/guides/models/chauvet/) - Full model description and equations
+- [Bastien Model](/guides/models/moulia/) - AC and ACĖ model details
+- [Constants Extraction Guide](/guides/constants-extraction/) - General parameter extraction methods
+
+---
+
+## References
+
+1. **Bastien, R., Bohr, T., Moulia, B., & Douady, S. (2013).** Unifying model of shoot gravitropism reveals proprioception as a central feature of posture control in plants. *PNAS*, 110(2), 755-760.
+
+2. **Bastien, R., Douady, S., & Moulia, B. (2014).** A unifying modeling of plant shoot gravitropism with an explicit account of the effects of growth. *Frontiers in Plant Science*, 5, 136.
+
+3. **Chauvet, H., Pouliquen, O., Forterre, Y., Legué, V., & Moulia, B. (2016).** Inclination not force is sensed by plants during shoot gravitropism. *Scientific Reports*, 6, 35431.

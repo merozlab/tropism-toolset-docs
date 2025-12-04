@@ -43,59 +43,6 @@ gamma = get_gamma(Tc, period)
 print(f"Gamma: {gamma:.6f} s⁻¹")
 print(f"Characteristic time: {1/gamma:.2f} s")
 ```
-
----
-
-### `get_gamma_2()`
-
-Calculate gamma with advanced options for threshold crossing.
-
-**Signature:**
-```python
-get_gamma_2(
-    Tc_frames: int,
-    frame_interval_s: float,
-    S0: Optional[float] = None,
-    eps: Optional[float] = None,
-    p: Optional[float] = None
-) -> float
-```
-
-**Parameters:**
-- `Tc_frames` (int): Frames to steady state
-- `frame_interval_s` (float): Seconds per frame
-- `S0` (float, optional): Initial signal value
-- `eps` (float, optional): Threshold value
-- `p` (float, optional): Completion fraction (e.g., 0.632 for one time constant)
-
-**Returns:**
-- `float`: Gamma in s⁻¹
-
-**Methods:**
-1. If `p` provided: γ = -ln(1-p) / T
-2. If `S0` and `eps` provided: γ = ln(S0/eps) / T
-3. Otherwise: γ = 1/T (e-folding time)
-
-**Example:**
-```python
-from constants import get_gamma_2
-
-# Using completion fraction
-gamma = get_gamma_2(
-    Tc_frames=120,
-    frame_interval_s=900,
-    p=0.632  # 1 - 1/e
-)
-
-# Using threshold
-gamma = get_gamma_2(
-    Tc_frames=120,
-    frame_interval_s=900,
-    S0=1.5,
-    eps=0.1
-)
-```
-
 ---
 
 ### `get_beta()`

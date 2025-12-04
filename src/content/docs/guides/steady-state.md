@@ -13,7 +13,7 @@ Learn how to identify when a plant organ has reached steady-state configuration 
 - Angle profile remains constant
 - Mask shape stabilizes
 
-Identifying the steady-state time ($T_c$) is crucial for calculating $\gamma$.
+Identifying the steady-state time ($T_c$) is another possible way to calculate $\gamma$.
 
 ## Time Series Analysis
 
