@@ -85,137 +85,117 @@ print(f"Beta: {beta:.4f} m⁻¹")
 
 ### `fit_growth_rate()`
 
-Fit linear model to extract growth rate (dL/dt).
+Fit linear model to length data and extract growth rate (dL/dt).
 
 **Signature:**
 ```python
 fit_growth_rate(
-    times: TimeArray,
-    values: TimeSeriesValues,
+    data: pd.DataFrame,
     *,
-    show: bool = False,
-    ylabel: str = "Value",
-    xlabel: str = "Frame",
-    title: str = "Linear Fit",
+    plot: bool = False,
+    display: bool = False,
+    save_path: str | None = None,
+    title: str = "Growth Rate",
     slope_label: str = "growth rate",
-    slope_units: str = "m/frame",
-    xvalues: Optional[TimeSeriesValues] = None,
-    use_xvalues_for_fit: bool = False
 ) -> float
 ```
 
 **Parameters:**
-- `times` (array): Frame or time values
-- `values` (array): Length measurements
-- `show` (bool, optional): Display plot. Default: False
-- `ylabel` (str, optional): Y-axis label
-- `xlabel` (str, optional): X-axis label
-- `title` (str, optional): Plot title
-- `slope_label` (str, optional): Label for slope annotation
-- `slope_units` (str, optional): Units for slope
-- `xvalues` (array, optional): Alternative x-values for plotting
-- `use_xvalues_for_fit` (bool, optional): Use xvalues for fit line
+- `data` (pd.DataFrame): DataFrame with exactly 2 columns:
+    - First column: temporal values with unit in name (e.g., 'time (s)' or 'frame')
+    - Second column: length values with unit in name (e.g., 'length (m)', 'length (mm)')
+- `display` (bool, optional): When True, display the linear fit. Default: False
+- `save_path` (str or None, optional): If provided, save the plot to this path.
+- `title` (str, optional): Plot title. Default: "Growth Rate".
+- `slope_label` (str, optional): Label for the slope in the plot annotation. Default: "growth rate".
 
 **Returns:**
-- `float`: Growth rate (slope) in specified units
+- `float`: Growth rate (slope of the linear fit) in units derived from column names
 
 **Example:**
 ```python
-from tropism_toolset import fit_growth_rate
+from tropism_toolset import fit_growth_rate, get_lengths_from_centerlines
 
-growth_rate = fit_growth_rate(
-    frames,
-    lengths,
-    show=True,
-    ylabel="Length (m)",
-    title="Elongation Dynamics",
-    slope_label="growth rate",
-    slope_units="m/frame"
-)
+# Get length data with units in column names
+length_data = get_lengths_from_centerlines(df, smooth=True)
 
-# Convert to biological units
-growth_rate_per_hour = growth_rate * (60 / minutes_per_frame)
+# Fit growth rate (units automatically determined from column names)
+dL_dt = fit_growth_rate(length_data, display=True)
 ```
 
 ---
 
+
 ### `fit_angular_velocity()`
 
-Fit piecewise linear model to extract angular velocity (dθ/dt).
+Fit piecewise linear model to angle data and extract angular velocity (dθ/dt).
 
 **Signature:**
 ```python
 fit_angular_velocity(
-    times: TimeArray,
-    values: TimeSeriesValues,
+    data: pd.DataFrame,
     *,
-    show: bool = False,
-    ylabel: str = "Angle (rad)",
+    display: bool = False,
+    save_path: str | None = None,
     title: str = "Tip Angular Velocity - Piecewise Linear Fit",
-    initial_guess: Optional[list] = None,
-    bounds: Optional[tuple] = None
+    initial_guess: list | None = None,
+    bounds: tuple | None = None,
 ) -> float
 ```
 
 **Parameters:**
-- `times` (array): Frame or time values
-- `values` (array): Angle measurements in radians
-- `show` (bool, optional): Display plot with π-notation. Default: False
-- `ylabel` (str, optional): Y-axis label
-- `title` (str, optional): Plot title
-- `initial_guess` (list, optional): Initial parameters for fitting
-- `bounds` (tuple, optional): Parameter bounds
+- `data` (pd.DataFrame): DataFrame with exactly 2 columns:
+    - First column: temporal values with unit in name (e.g., 'time (s)' or 'frame')
+    - Second column: angle values with unit in name (e.g., 'angle (rad)')
+- `display` (bool, optional): When True, display the piecewise fit. Default: False
+- `save_path` (str or None, optional): If provided, save the plot to this path.
+- `title` (str, optional): Plot title. Default: "Tip Angular Velocity - Piecewise Linear Fit".
+- `initial_guess` (list, optional): Initial parameter guess [x0, m1, b1, m2].
+- `bounds` (tuple, optional): Parameter bounds.
 
 **Returns:**
-- `float`: Angular velocity from phase 1 (rad/frame)
+- `float`: Angular velocity from phase 1 (slope of first segment) [rad/s or rad/frame]
 
 **Example:**
 ```python
-from tropism_toolset import fit_angular_velocity
+from tropism_toolset import fit_angular_velocity, get_tip_angles_linear_fit
 
-angular_velocity = fit_angular_velocity(
-    frames,
-    tip_angles,
-    show=True,
-    title="Tip Reorientation"
-)
+# Get angle data with units in column names
+angle_data = get_tip_angles_linear_fit(df, percent=10)
 
-# Convert to degrees per hour
-degrees_per_hour = np.degrees(angular_velocity) * (60 / minutes_per_frame)
-print(f"Angular velocity: {degrees_per_hour:.2f} °/hour")
+# Fit angular velocity (units automatically determined from column names)
+dtheta_dt = fit_angular_velocity(angle_data, display=True)
 ```
 
 ---
 
+
 ### `fit_angular_velocity_exponential()`
 
-Fit saturating exponential model to extract initial angular velocity.
+Fit saturating exponential model to angle data and extract initial angular velocity.
 
 **Signature:**
 ```python
 fit_angular_velocity_exponential(
-    times: TimeArray,
-    values: TimeSeriesValues,
-    *,
-    show: bool = False,
-    ylabel: str = "Angle (rad)",
+    data: pd.DataFrame,
     title: str = "Tip Angular Velocity - Saturating Exponential Fit",
-    initial_guess: Optional[list] = None,
-    bounds: Optional[tuple] = None
+    initial_guess: list | None = None,
+    bounds: tuple | None = None,
+    display: bool = False,
+    save_path: str | Path | None = None,
 ) -> float
 ```
 
 **Parameters:**
-- `times` (array): Frame or time values
-- `values` (array): Angle measurements in radians
-- `show` (bool, optional): Display plot. Default: False
-- `ylabel` (str, optional): Y-axis label
-- `title` (str, optional): Plot title
-- `initial_guess` (list, optional): Initial parameters [theta_inf, theta_0, tau]
-- `bounds` (tuple, optional): Parameter bounds
+- `data` (pd.DataFrame): DataFrame with exactly 2 columns (temporal, angle)
+- `display` (bool, optional): When True, display the saturating exponential fit plot. Default: False
+- `save_path` (str or None, optional): If provided, save the plot to this path.
+- `title` (str, optional): Plot title.
+- `initial_guess` (list, optional): Initial parameter guess [theta_inf, theta_0, tau].
+- `bounds` (tuple, optional): Parameter bounds.
 
 **Returns:**
-- `float`: Initial angular velocity (θ∞ - θ₀)/τ in rad/frame
+- `float`: Initial angular velocity: (θ_∞ - θ_0)/τ [rad/frame or rad/s]
 
 **Model:**
 <Equation>
@@ -237,19 +217,12 @@ from tropism_toolset import fit_angular_velocity_exponential
 
 # Fit exponential approach to steady state
 dtheta_dt = fit_angular_velocity_exponential(
-    frames,
-    tip_angles,
-    show=True
+    angle_data,
+    display=True
 )
 
 print(f"Initial angular velocity: {dtheta_dt:.6e} rad/frame")
 ```
-
-**Notes:**
-- Alternative to piecewise linear fit
-- Physically motivated: describes approach to steady-state angle
-- τ is the characteristic time constant
-- Returns the initial rate of angle change
 
 ---
 
@@ -261,7 +234,7 @@ The Chauvet model quantifies how plants sense inclination rather than force. It 
 
 ### `Chauvet_Delta_tilde()`
 
-Calculate Chauvet Δ̃ parameter from angular velocity and growth rate.
+Calculate Chauvet Δ̃ parameter from tip angular velocity and growth rate.
 
 **Signature:**
 ```python
@@ -300,15 +273,15 @@ from tropism_toolset import (
 )
 
 # Calculate growth rate
-times_L, lengths, _ = get_lengths_from_masks(
+length_data = get_lengths_from_masks(
     mask_dir='data/masks/',
     R=0.002
 )
-dL_dt = fit_growth_rate(times_L, lengths)
+dL_dt = fit_growth_rate(length_data)
 
 # Calculate tip angular velocity
-times_theta, tip_angles = get_tip_angles_linear_fit(data, tip_percent=10)
-dtheta_dt = fit_angular_velocity(times_theta, tip_angles)
+angle_data = get_tip_angles_linear_fit(data, percent=10)
+dtheta_dt = fit_angular_velocity(angle_data)
 
 # Calculate Delta tilde
 Delta = Chauvet_Delta_tilde(
@@ -319,16 +292,12 @@ Delta = Chauvet_Delta_tilde(
 )
 ```
 
-**Notes:**
-- dθ/dt and dL/dt must be calculated separately before calling
-- Provides flexibility to choose different methods for calculating angles and lengths
-- R should match the physical organ radius
-
 ---
+
 
 ### `Chauvet_beta_tilde()`
 
-Calculate Chauvet β̃ gravitropic sensitivity from Δ̃ and plant data.
+Calculate Chauvet β̃ gravitropic sensitivity from Δ̃ and plant centerline data.
 
 **Signature:**
 ```python
@@ -341,7 +310,7 @@ Chauvet_beta_tilde(
 
 **Parameters:**
 - `Delta_tilde` (float): Chauvet Δ̃ parameter from `Chauvet_Delta_tilde()`
-- `data` (DataFrame): DataFrame with 'x', 'y', 'frame' columns (coordinates in meters)
+- `data` (pd.DataFrame): DataFrame with 'x', 'y', 'frame' columns (coordinates in meters)
 - `display` (bool, optional): Show diagnostic info. Default: False
 
 **Returns:**
@@ -360,13 +329,7 @@ Where θ₀ is the initial base angle from the first frame.
 ```python
 from tropism_toolset import Chauvet_Delta_tilde, Chauvet_beta_tilde
 
-# First calculate Delta tilde
-Delta = Chauvet_Delta_tilde(
-    dtheta_dt=dtheta_dt,
-    dL_dt=dL_dt,
-    R=0.002,
-    display=True
-)
+# ... calculate Delta ...
 
 # Then calculate beta tilde
 beta = Chauvet_beta_tilde(
@@ -378,11 +341,6 @@ beta = Chauvet_beta_tilde(
 print(f"Gravitropic sensitivity (β̃): {beta:.6f}")
 ```
 
-**Notes:**
-- Requires Δ̃ calculated from `Chauvet_Delta_tilde()` first
-- Automatically calculates initial base angle θ₀ from data
-- Separation allows reusing Δ̃ for multiple calculations
-
 ---
 
 ## Bastien Model Parameters
@@ -391,7 +349,7 @@ The Bastien model relates bending angle dynamics to growth rate through proprioc
 
 ### `Bastien_gamma_tilde()`
 
-Calculate Bastien γ̃ proprioceptive sensitivity.
+Calculate Bastien γ̃ proprioceptive sensitivity from a calculated beta_tilde and Lc.
 
 **Signature:**
 ```python
@@ -413,43 +371,33 @@ $$\tilde{\gamma} = \frac{L_c \cdot \tilde{\beta}}{R}$$
 
 </Equation>
 
-**Example:**
-```python
-from tropism_toolset import Bastien_gamma_tilde
-
-gamma_tilde = Bastien_gamma_tilde(
-    beta_tilde=beta,
-    Lc=0.042,
-    R=0.002
-)
-
-print(f"Proprioceptive sensitivity (γ̃): {gamma_tilde:.6f}")
-```
-
 ---
+
 
 ### `Bastien_Delta_tilde()`
 
-Calculate Bastien Δ parameter from bending rate and growth rate.
+Calculate Bastien proprioceptive sensitivity parameter Δ from pre-calculated derivatives.
 
 **Signature:**
 ```python
 Bastien_Delta_tilde(
-    dtheta_tip_dt: np.ndarray,
-    dE_dt: np.ndarray,
+    dtheta_tip_dt: pd.Series,
+    dE_dt: pd.Series,
     R: float = 0.002,
-    show: bool = False
+    display: bool = False,
+    save_path: str | Path | None = None,
 ) -> float
 ```
 
 **Parameters:**
-- `dtheta_tip_dt` (array): Rate of change of bending angle (θ_tip - θ_base) in rad/frame
-- `dE_dt` (array): Rate of change of length (growth rate) in m/frame
+- `dtheta_tip_dt` (pd.Series): Rate of change of bending angle (θ_tip - θ_base) in rad/frame
+- `dE_dt` (pd.Series): Rate of change of length (growth rate) in m/frame
 - `R` (float, optional): Organ radius in meters. Default: 0.002
-- `show` (bool, optional): Display diagnostic plot. Default: False
+- `display` (bool, optional): Display diagnostic plot. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path.
 
 **Returns:**
-- `float`: Bastien Δ proprioceptive sensitivity (dimensionless)
+- `float`: Bastien proprioceptive sensitivity parameter Δ (dimensionless)
 
 **Model:**
 <Equation>
@@ -469,14 +417,16 @@ from tropism_toolset.geometric_calculations import (
 )
 from scipy.signal import savgol_filter
 import numpy as np
+import pandas as pd
 
-# Calculate bending angle B(t) = theta_tip(t) - theta_base(t)
-times_tip, tip_angles = get_tip_angles_linear_fit(data, percent=10, side='tip')
-times_base, base_angles = get_tip_angles_linear_fit(data, percent=10, side='base')
-B = tip_angles - base_angles
+# Calculate B(t) = theta_tip(t) - theta_base(t)
+tip_angles_df = get_tip_angles_linear_fit(data, percent=10, side='tip')
+base_angles_df = get_tip_angles_linear_fit(data, percent=10, side='base')
+B = tip_angles_df['angle (rad)'].values - base_angles_df['angle (rad)'].values
 
-# Calculate length L(t)
-times_L, L, _ = get_lengths_from_centerlines(data)
+# Calculate L(t)
+lengths_df = get_lengths_from_centerlines(data)
+L = lengths_df['length (m)'].values
 
 # Apply Savitzky-Golay smoothing
 B_smoothed = savgol_filter(B, window_length=11, polyorder=2)
@@ -487,22 +437,18 @@ dB_dt = np.diff(B_smoothed)
 dE_dt = np.diff(L_smoothed)
 
 # Calculate Delta
-Delta = Bastien_Delta_tilde(dB_dt, dE_dt, R=0.002, show=True)
+Delta = Bastien_Delta_tilde(
+    pd.Series(dB_dt),
+    pd.Series(dE_dt),
+    R=0.002,
+    display=True
+)
 
 print(f"Bastien Δ: {Delta:.6f}")
 ```
-
-**Notes:**
-- Requires pre-calculated derivatives (use finite differences after smoothing)
-- Fits linear model: dB/dt = (Δ/R) × dE/dt
-- Slope of fit represents Δ/R in rad/m
-- Function returns Δ = slope × R (dimensionless)
-
----
 
 ## See Also
 
 - [Fitting Functions](/reference/fitting/) - For underlying fitting algorithms
 - [Geometric Calculations](/reference/geometric-calculations/) - For angle and arc length calculations
 - [Constants Extraction Guide](/guides/constants-extraction/) - Usage examples
-- [Growth Analysis Guide](/guides/growth-analysis/) - Complete workflows

@@ -15,24 +15,26 @@ Fit piecewise constant + saturating exponential to extract convergence length.
 **Signature:**
 ```python
 fit_Lc(
-    cum_len: ArclengthArray,
-    theta: AngleArray,
+    data: pd.DataFrame,
+    rotate: Optional[str] = None,
     initial_guess: Optional[list] = None,
     bounds: Optional[Tuple[list, list]] = None,
-    show: bool = True,
     crop_start: int = 0,
-    crop_end: int = 0
-) -> LcFitResult
+    crop_end: int = 0,
+    display: bool = False,
+    save_path: str | Path | None = None,
+) -> Tuple[float, float, float, float, float]
 ```
 
 **Parameters:**
-- `cum_len` (array): Cumulative length (arc length) data
-- `theta` (array): Angle data in radians
+- `data` (pd.DataFrame): DataFrame from `x_y_to_s_theta` with 's' and 'theta' columns
+- `rotate` (str or None, optional): Rotation option: "horizontal", "vertical", or None. Default: None
 - `initial_guess` (list, optional): Initial parameters [x0, Bl, A, Lc]
 - `bounds` (tuple, optional): Parameter bounds
-- `show` (bool, optional): Display fit plot. Default: True
 - `crop_start` (int, optional): Points to crop from start. Default: 0
 - `crop_end` (int, optional): Points to crop from end. Default: 0
+- `display` (bool, optional): Display fit plot. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path.
 
 **Returns:**
 - `tuple[float, float, float, float, float]`: (x0, Bl, A, Lc, r_squared)
@@ -47,8 +49,7 @@ fit_Lc(
 
 $$
 \theta(s) = \begin{cases}
-B_\ell & s < s_0 \\
-B_\ell + A(1 - e^{-(s-s_0)/L_c}) & s \geq s_0
+B_\ell & s < s_0 \\ B_\ell + A(1 - e^{-(s-s_0)/L_c}) & s \geq s_0
 \end{cases}
 $$
 
@@ -56,35 +57,22 @@ $$
 
 **Example:**
 ```python
-from tropism_toolset import get_angles, get_arclengths
-from tropism_toolset.fitting import fit_Lc
+from tropism_toolset import x_y_to_s_theta, fit_Lc
 
-# Get steady-state frame data
+# Get steady-state frame data and convert to s-theta
 frame_data = data[data['frame'] == steady_frame]
-
-# Calculate angles and arclengths
-angles = get_angles(frame_data)
-arclengths = get_arclengths(frame_data)
+s_theta_data = x_y_to_s_theta(frame_data)
 
 # Fit to extract Lc
 x0, Bl, A, Lc, r_squared = fit_Lc(
-    arclengths,
-    angles,
-    show=True,
+    s_theta_data,
+    display=True,
     crop_end=3  # Remove noisy tip points
 )
 
 print(f"Convergence length: {Lc:.4f} m")
 print(f"R²: {r_squared:.4f}")
 ```
-
-**Notes:**
-- **Critical function** for gravitropism analysis
-- Lc represents spatial extent of gravitropic response
-- Typical values: 0.01 - 0.1 m for roots
-- Used to calculate β = γ/Lc
-- Data-driven initial guess if not provided
-- Crop noisy base/tip points for better fits
 
 ---
 
@@ -97,30 +85,22 @@ Fit single linear function to data.
 **Signature:**
 ```python
 fit_linear(
-    times: TimeArray,
-    values: TimeSeriesValues,
-    show: bool = False,
-    ylabel: str = "Value",
-    xlabel: str = "Time",
+    x: pd.Series,
+    y: pd.Series,
     title: str = "Linear Fit",
-    slope_label: str = "slope",
-    slope_units: str = "",
-    xvalues: Optional[TimeSeriesValues] = None,
-    use_xvalues_for_fit: bool = False
-) -> LinearFitResult
+    slope_label: str | None = None,
+    display: bool = False,
+    save_path: str | Path | None = None,
+) -> Tuple[float, float, np.ndarray]
 ```
 
 **Parameters:**
-- `times` (array): Time/frame values (x-axis)
-- `values` (array): Values to fit (y-axis)
-- `show` (bool, optional): Display plot. Default: False
-- `ylabel` (str, optional): Y-axis label
-- `xlabel` (str, optional): X-axis label
-- `title` (str, optional): Plot title
-- `slope_label` (str, optional): Label for slope annotation
-- `slope_units` (str, optional): Units for slope
-- `xvalues` (array, optional): Alternative x-values for plotting
-- `use_xvalues_for_fit` (bool, optional): Use xvalues for fit line. Default: False
+- `x` (pd.Series): Time/frame values (x-axis)
+- `y` (pd.Series): Values to fit (y-axis)
+- `title` (str, optional): Plot title. Default: "Linear Fit"
+- `slope_label` (str | None, optional): Label for slope annotation
+- `display` (bool, optional): Display plot. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path.
 
 **Returns:**
 - `tuple[float, float, np.ndarray]`: (slope, r_squared, coeffs)
@@ -136,10 +116,8 @@ from tropism_toolset.fitting import fit_linear
 slope, r2, coeffs = fit_linear(
     frames,
     lengths,
-    show=True,
-    ylabel="Length (m)",
-    slope_label="growth rate",
-    slope_units="m/frame"
+    display=True,
+    slope_label="growth rate"
 )
 ```
 
@@ -152,15 +130,15 @@ Fit two linear segments with breakpoint optimization via R² maximization.
 **Signature:**
 ```python
 fit_piecewise_linear(
-    frames: TimeArray,
-    values: TimeSeriesValues,
+    frames: np.ndarray,
+    values: np.ndarray,
     min_bp: int = 5
-) -> PiecewiseFitResult
+) -> Tuple[float, float, int, Tuple[np.ndarray, np.ndarray]]
 ```
 
 **Parameters:**
-- `frames` (array): Frame numbers (x-axis)
-- `values` (array): Values to fit (y-axis)
+- `frames` (np.ndarray): Frame numbers (x-axis)
+- `values` (np.ndarray): Values to fit (y-axis)
 - `min_bp` (int, optional): Minimum frames from start/end for breakpoint. Default: 5
 
 **Returns:**
@@ -171,50 +149,32 @@ fit_piecewise_linear(
   - `p1_coeffs`: Phase 1 coefficients [slope, intercept]
   - `p2_coeffs`: Phase 2 coefficients [slope, intercept]
 
-**Example:**
-```python
-from tropism_toolset.fitting import fit_piecewise_linear
-
-# Find two-phase growth
-slope1, slope2, bp, (p1, p2) = fit_piecewise_linear(
-    frames,
-    lengths,
-    min_bp=10
-)
-
-print(f"Phase 1 growth rate: {slope1:.6e} m/frame")
-print(f"Phase 2 growth rate: {slope2:.6e} m/frame")
-print(f"Breakpoint: frame {bp}")
-```
-
-**Notes:**
-- Searches discrete frame indices for optimal breakpoint
-- Maximizes overall R² of combined segments
-- Use for data with clear two-phase behavior
 
 ---
 
 ### `fit_piecewise_linear_continuous()`
 
-Fit continuous piecewise linear model with curve_fit optimization.
+Fit two continuous linear segments to data using curve_fit, with breakpoint x₀ as a fitted parameter.
 
 **Signature:**
 ```python
 fit_piecewise_linear_continuous(
-    times: TimeArray,
-    values: TimeSeriesValues,
+    times: pd.Series,
+    values: pd.Series,
     initial_guess: Optional[list] = None,
     bounds: Optional[Tuple[list, list]] = None,
-    show: bool = False
-) -> PiecewiseFitResult
+    display: bool = False,
+    save_path: str | Path | None = None,
+) -> Tuple[float, float, float, Tuple[np.ndarray, np.ndarray]]
 ```
 
 **Parameters:**
-- `times` (array): Time/frame values
-- `values` (array): Values to fit
+- `times` (pd.Series): Time/frame values
+- `values` (pd.Series): Values to fit
 - `initial_guess` (list, optional): Initial parameters [x0, m1, b1, m2]
 - `bounds` (tuple, optional): Parameter bounds
-- `show` (bool, optional): Display plot. Default: False
+- `display` (bool, optional): Display plot. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path.
 
 **Returns:**
 - `tuple[float, float, float, tuple]`: (slope1, slope2, breakpoint, (p1_coeffs, p2_coeffs))
@@ -227,30 +187,19 @@ fit_piecewise_linear_continuous(
 **Model:**
 <Equation>
 $$
-y = \begin{cases}
-m_1 x + b_1 & x < x_0 \\
-m_2(x - x_0) + (m_1 x_0 + b_1) & x \geq x_0
-\end{cases}
+ y = \begin{cases}
+ m_1 x + b_1 & x < x_0 \\
+ m_2(x - x_0) + (m_1 x_0 + b_1) & x \geq x_0
+ \end{cases}
 $$
 </Equation>
-
-**Example:**
-```python
-from tropism_toolset.fitting import fit_piecewise_linear_continuous
-
-# Fit with continuous breakpoint
-m1, m2, x0, (p1, p2) = fit_piecewise_linear_continuous(
-    times,
-    angles,
-    show=True
-)
-```
 
 **Notes:**
 - Breakpoint x₀ is optimized as continuous parameter
 - Enforces continuity at breakpoint
 - More flexible than discrete breakpoint search
 - Used by `fit_angular_velocity()`
+
 
 ---
 
@@ -263,22 +212,22 @@ Fit saturating exponential model for approach to steady state.
 **Signature:**
 ```python
 fit_saturating_exponential(
-    times: TimeArray,
-    values: TimeSeriesValues,
+    x: pd.Series,
+    y: pd.Series,
     initial_guess: Optional[list] = None,
     bounds: Optional[Tuple[list, list]] = None,
-    show: bool = False,
-    data_type: str = 'angle'
-) -> SaturatingExponentialResult
+    display: bool = False,
+    save_path: str | Path | None = None,
+) -> Tuple[float, float, float, float]
 ```
 
 **Parameters:**
-- `times` (array): Time/frame values
-- `values` (array): Angle or length measurements
+- `x` (pd.Series): Time/frame values
+- `y` (pd.Series): Angle or length measurements
 - `initial_guess` (list, optional): Initial parameters [y_inf, y_0, tau]
 - `bounds` (tuple, optional): Parameter bounds
-- `show` (bool, optional): Display plot. Default: False
-- `data_type` (str, optional): 'angle' or 'length'. Default: 'angle'
+- `display` (bool, optional): Display plot. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path.
 
 **Returns:**
 - `tuple[float, float, float, float]`: (y_inf, y_0, tau, r_squared)
@@ -309,91 +258,12 @@ from tropism_toolset.fitting import fit_saturating_exponential
 theta_inf, theta_0, tau, r2 = fit_saturating_exponential(
     frames,
     tip_angles,
-    show=True,
-    data_type='angle'
+    display=True
 )
 
 print(f"Steady-state angle: {theta_inf:.6f} rad")
 print(f"Time constant: {tau:.2f} frames")
-print(f"Initial rate: {(theta_inf - theta_0)/tau:.6e} rad/frame")
 ```
-
-**Notes:**
-- τ is time constant (frames to reach ~63% of change)
-- Physically motivated for gravitropic response
-- Alternative to piecewise linear fitting
-- Data-driven initial guess if not provided
-
----
-
-### `fit_logistic_growth()`
-
-Fit logistic (S-curve) growth model.
-
-**Signature:**
-```python
-fit_logistic_growth(
-    times: TimeArray,
-    values: TimeSeriesValues,
-    initial_guess: Optional[list] = None,
-    bounds: Optional[Tuple[list, list]] = None,
-    show: bool = False,
-    data_type: str = 'angle'
-) -> LogisticGrowthResult
-```
-
-**Parameters:**
-- `times` (array): Time/frame values
-- `values` (array): Angle or length measurements
-- `initial_guess` (list, optional): Initial parameters [K, y_0, r, t_m]
-- `bounds` (tuple, optional): Parameter bounds
-- `show` (bool, optional): Display plot. Default: False
-- `data_type` (str, optional): 'angle' or 'length'. Default: 'angle'
-
-**Returns:**
-- `tuple[float, float, float, float, float]`: (K, y_0, r, t_m, r_squared)
-  - `K`: Carrying capacity (asymptotic maximum)
-  - `y_0`: Initial value
-  - `r`: Growth rate parameter (1/frames)
-  - `t_m`: Time of inflection point
-  - `r_squared`: R² value
-
-**Model:**
-<Equation>
-
-$$y(t) = y_0 + \frac{K - y_0}{1 + e^{-r(t - t_m)}}$$
-
-</Equation>
-
-Maximum growth rate at $t = t_m$:
-<Equation>
-
-$$\frac{dy}{dt}\Big|_{t=t_m} = \frac{r(K - y_0)}{4}$$
-
-</Equation>
-
-**Example:**
-```python
-from tropism_toolset.fitting import fit_logistic_growth
-
-# Fit S-curve growth
-K, y_0, r, t_m, r2 = fit_logistic_growth(
-    frames,
-    lengths,
-    show=True,
-    data_type='length'
-)
-
-print(f"Carrying capacity: {K:.6f} m")
-print(f"Growth rate: {r:.6f} 1/frames")
-print(f"Inflection point: frame {t_m:.2f}")
-```
-
-**Notes:**
-- Describes sigmoidal growth typical of biological systems
-- At t_m: y(t_m) = y_0 + (K - y_0)/2 (midpoint)
-- Useful for length growth with saturation
-- Data-driven initial guess if not provided
 
 ---
 
@@ -406,15 +276,15 @@ Find steady state start in time series data.
 **Signature:**
 ```python
 find_steady_state(
-    data: AngleArray | ArclengthArray,
+    data: pd.Series,
     window: int = 30,
     mean_tol: float = 0.001,
     var_tol: float = 0.0001
-) -> Optional[int]
+) -> int | None
 ```
 
 **Parameters:**
-- `data` (array): Time series data to analyze
+- `data` (pd.Series): Time series data to analyze
 - `window` (int, optional): Sliding window size. Default: 30
 - `mean_tol` (float, optional): Mean change tolerance. Default: 0.001
 - `var_tol` (float, optional): Variance change tolerance. Default: 0.0001
@@ -428,7 +298,8 @@ from tropism_toolset.fitting import find_steady_state
 from tropism_toolset import get_lengths_from_centerlines
 
 # Get length time series
-times, lengths, _ = get_lengths_from_centerlines(data)
+lengths_df = get_lengths_from_centerlines(data)
+lengths = lengths_df['length (m)']
 
 # Find when growth stabilizes
 Tc = find_steady_state(
@@ -444,11 +315,6 @@ else:
     print("Steady state not detected")
 ```
 
-**Notes:**
-- Uses sliding window analysis
-- Checks: mean change, variance change, linear trend
-- All three criteria must be met simultaneously
-- Returns start of steady state window
 
 ---
 
@@ -462,24 +328,26 @@ find_steady_state_from_masks(
     mask_dir: str | Path,
     px_per_m: float,
     window: int = 15,
-    mean_tol: Optional[float] = None,
+    mean_tol: float | None = None,
     var_tol: float = 0.00001,
     method: str = "edge_change",
-    show: bool = False
-) -> MaskStabilityResult
+    display: bool = False,
+    save_path: str | Path | None = None,
+) -> Tuple[pd.Series, int | None, float | None]
 ```
 
 **Parameters:**
 - `mask_dir` (str or Path): Directory with mask files (*.bmp)
 - `px_per_m` (float): Pixel to meter conversion factor
 - `window` (int, optional): Window size for detection. Default: 15
-- `mean_tol` (float, optional): Mean tolerance (auto-calculated if None)
+- `mean_tol` (float | None, optional): Mean tolerance (auto-calculated if None)
 - `var_tol` (float, optional): Variance tolerance. Default: 0.00001
 - `method` (str, optional): 'overlap' or 'edge_change'. Default: 'edge_change'
-- `show` (bool, optional): Display plot. Default: False
+- `display` (bool, optional): Display plot. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path.
 
 **Returns:**
-- `tuple[np.ndarray, Optional[int], Optional[float]]`: (stability_scores, Tc, median_area)
+- `tuple[pd.Series, int | None, float | None]`: (stability_scores, Tc, median_area)
   - `stability_scores`: Instability scores between frames
   - `Tc`: Steady state start frame, or None
   - `median_area`: Median mask area in m²
@@ -496,7 +364,7 @@ scores, Tc, area = find_steady_state_from_masks(
     mask_dir='data/masks/',
     px_per_m=10000,  # 0.1 mm per pixel
     method='edge_change',
-    show=True
+    display=True
 )
 
 if Tc is not None:
@@ -504,14 +372,28 @@ if Tc is not None:
     print(f"Median mask area: {area:.6f} m²")
 ```
 
-**Notes:**
-- Alternative to centerline-based detection
-- 'edge_change' more sensitive to growth zone changes
-- 'overlap' more robust to noise
-- Adaptive mean tolerance if not provided
-- Higher scores = more instability
+## Smoothing
 
----
+### `smooth_centerlines()`
+
+Apply Savitzky-Golay smoothing to centerline coordinates frame-by-frame.
+
+**Signature:**
+```python
+smooth_centerlines(
+    data: pd.DataFrame,
+    window_length: int = 5,
+    polyorder: int = 2,
+) -> pd.DataFrame
+```
+
+**Parameters:**
+- `data` (pd.DataFrame): DataFrame with columns ['frame', 'x', 'y']
+- `window_length` (int, optional): Length of smoothing window. Default: 5
+- `polyorder` (int, optional): Polynomial order. Default: 2
+
+**Returns:**
+- `pd.DataFrame`: Smoothed DataFrame
 
 ## See Also
 

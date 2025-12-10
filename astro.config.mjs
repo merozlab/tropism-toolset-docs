@@ -29,6 +29,7 @@ export default defineConfig({
           items: [
             { label: "Installation", slug: "guides/installation" },
             { label: "Quick Start", slug: "guides/quickstart" },
+            { label: "Design Principles", slug: "guides/design-principles" },
             { label: "Core Concepts", slug: "guides/concepts" },
           ],
         },
@@ -45,11 +46,16 @@ export default defineConfig({
         {
           label: "User Guides",
           items: [
-            { label: "Working with Data", slug: "guides/data-handling" },
-            { label: "Finding β̃ and γ̃", slug: "guides/finding-beta-gamma" },
+            { label: "Preprocessing Workflow", slug: "guides/data-handling" },
+            { label: "Beta & Gamma Analysis Workflow", slug: "guides/finding-beta-gamma" },
+            { label: "Growth Analysis Workflow", slug: "guides/growth-analysis" },
+            { label: "Tip Angle Analysis Workflow", slug: "guides/steady-state" },
+          ],
+        },
+        {
+          label: "Core Tools",
+          items: [
             { label: "Fitting", slug: "guides/fitting" },
-            { label: "Growth Analysis", slug: "guides/growth-analysis" },
-            { label: "Steady State Detection", slug: "guides/steady-state" },
             { label: "Visualization", slug: "guides/visualization" },
           ],
         },
@@ -63,7 +69,6 @@ export default defineConfig({
           collapsed: true,
           items: [
             { label: "Complete Workflows", slug: "examples/workflows" },
-            { label: "Notebook Guides", slug: "examples/notebooks" },
           ],
         },
         {

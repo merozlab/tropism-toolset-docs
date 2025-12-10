@@ -20,7 +20,7 @@ flip_centerlines(
 ```
 
 **Parameters:**
-- `data` (DataFrame): DataFrame with 'x' and 'y' columns (or 'x (unit)', 'y (unit)')
+- `data` (pd.DataFrame): DataFrame with 'x' and 'y' columns (or 'x (unit)', 'y (unit)')
 - `direction` (str, optional): Direction to flip:
   - `'horizontal'`: flip x-coordinates (left-right mirror)
   - `'vertical'`: flip y-coordinates (top-bottom mirror)
@@ -28,7 +28,7 @@ flip_centerlines(
   - Default: `'horizontal'`
 
 **Returns:**
-- `DataFrame`: DataFrame with flipped coordinates
+- `pd.DataFrame`: DataFrame with flipped coordinates
 
 **Example:**
 ```python
@@ -36,73 +36,52 @@ from tropism_toolset.utils import flip_centerlines
 
 # Flip horizontally (mirror left-right)
 df_flipped = flip_centerlines(df, direction='horizontal')
-
-# Flip vertically (mirror top-bottom)
-df_flipped = flip_centerlines(df, direction='vertical')
-
-# Flip both directions
-df_flipped = flip_centerlines(df, direction='both')
 ```
-
-**Notes:**
-- Flipping is performed around the center of the coordinate range
-- Automatically detects column names (x/y or x (unit)/y (unit))
-- All frames in the DataFrame are flipped using the same center point
-- Returns a new DataFrame; does not modify the original
 
 ---
 
 ### `flip_centerlines_horizontal()`
 
-Flip centerline coordinates horizontally (left-right mirror).
+Flip centerline coordinates horizontally.
 
 **Signature:**
 ```python
 flip_centerlines_horizontal(data: pd.DataFrame) -> pd.DataFrame
 ```
 
-**Parameters:**
-- `data` (DataFrame): DataFrame with 'x' and 'y' columns
-
-**Returns:**
-- `DataFrame`: DataFrame with horizontally flipped coordinates
-
-**Example:**
-```python
-from tropism_toolset.utils import flip_centerlines_horizontal
-
-df_flipped = flip_centerlines_horizontal(df)
-```
-
-**Notes:**
-- Convenience function that calls `flip_centerlines` with `direction='horizontal'`
-
 ---
 
 ### `flip_centerlines_vertical()`
 
-Flip centerline coordinates vertically (top-bottom mirror).
+Flip centerline coordinates vertically.
 
 **Signature:**
 ```python
 flip_centerlines_vertical(data: pd.DataFrame) -> pd.DataFrame
 ```
 
-**Parameters:**
-- `data` (DataFrame): DataFrame with 'x' and 'y' columns
+---
 
-**Returns:**
-- `DataFrame`: DataFrame with vertically flipped coordinates
+### `rotate_centerlines_to_horizontal()`
 
-**Example:**
+Rotate all centerline data so that the reference frame's base-to-tip direction becomes horizontal or vertical.
+
+**Signature:**
 ```python
-from tropism_toolset.utils import flip_centerlines_vertical
-
-df_flipped = flip_centerlines_vertical(df)
+rotate_centerlines_to_horizontal(
+    data: pd.DataFrame,
+    reference_frame: int = 0,
+    orientation: str = "horizontal"
+) -> pd.DataFrame
 ```
 
-**Notes:**
-- Convenience function that calls `flip_centerlines` with `direction='vertical'`
+**Parameters:**
+- `data` (pd.DataFrame): DataFrame containing centerline data with x, y, and frame columns
+- `reference_frame` (int, optional): Frame number to use for determining the rotation angle. Default: 0
+- `orientation` (str, optional): Target orientation: "horizontal" or "vertical". Default: "horizontal"
+
+**Returns:**
+- `pd.DataFrame`: DataFrame with rotated coordinates
 
 ---
 
@@ -112,31 +91,18 @@ Reverse the order of points along the centerline for all frames.
 
 **Signature:**
 ```python
-reverse_centerline_order(data: pd.DataFrame) -> pd.DataFrame
+reverse_centerline_order(
+    data: pd.DataFrame,
+    correct_direction: Literal["ltr", "rtl"] | None = None
+) -> pd.DataFrame
 ```
 
 **Parameters:**
-- `data` (DataFrame): DataFrame with 'frame' column
+- `data` (pd.DataFrame): DataFrame with 'frame' column
+- `correct_direction` (str, optional): Check if reversal is needed based on expected direction ("ltr" for left-to-right, "rtl" for right-to-left). If condition is met, no reversal occurs. Default: None
 
 **Returns:**
-- `DataFrame`: DataFrame with reversed centerline point order
-
-**Example:**
-```python
-from tropism_toolset.utils import reverse_centerline_order
-
-# Reverse point order (swap base and tip)
-df_reversed = reverse_centerline_order(df)
-```
-
-**Notes:**
-- Reverses the order of centerline points within each frame
-- Effectively swaps the base and tip
-- Useful when centerline extraction started from the wrong end
-- The reversal is applied independently to each frame
-- Frame numbers remain unchanged
-- Only the order of points within each frame is reversed
-- Returns a new DataFrame; does not modify the original
+- `pd.DataFrame`: DataFrame with reversed centerline point order
 
 ---
 
@@ -156,37 +122,12 @@ check_centerline_orientation(
 ```
 
 **Parameters:**
-- `data` (DataFrame): DataFrame with 'x', 'y', and 'frame' columns
-- `frame` (int, optional): Frame number to analyze. If -1, uses the last frame. Default: -1
+- `data` (pd.DataFrame): DataFrame with 'x', 'y', and 'frame' columns
+- `frame` (int, optional): Frame number to analyze. Default: -1 (last frame)
 - `verbose` (bool, optional): If True, print orientation information. Default: True
 
 **Returns:**
-- `dict`: Dictionary containing:
-  - `'frame_n'`: Frame number analyzed
-  - `'first_point'`: (x, y) coordinates of first point
-  - `'last_point'`: (x, y) coordinates of last point
-  - `'x_direction'`: 'left-to-right' or 'right-to-left'
-  - `'y_direction'`: 'bottom-to-top' or 'top-to-bottom'
-  - `'total_points'`: Number of points in the centerline
-
-**Example:**
-```python
-from tropism_toolset.utils import check_centerline_orientation
-
-# Check orientation of last frame
-info = check_centerline_orientation(df)
-
-# Check orientation of specific frame
-info = check_centerline_orientation(df, frame=50)
-
-# Get info without printing
-info = check_centerline_orientation(df, verbose=False)
-```
-
-**Notes:**
-- Helps determine if `flip_centerlines()` or `reverse_centerline_order()` is needed
-- Assumes image coordinates (y increases downward) for direction descriptions
-- Provides suggestions for correction if needed
+- `dict`: Dictionary containing orientation details.
 
 ---
 
@@ -206,39 +147,24 @@ convert_centerline_units(
 ```
 
 **Parameters:**
-- `data` (DataFrame): DataFrame with 'x', 'y', and 'frame' columns
-- `px_to_m` (float, optional): Conversion factor from pixels to meters (e.g., 0.001 means 1 pixel = 0.001 meters). If None, spatial coordinates are not converted. Default: None
-- `frame_to_s` (float, optional): Conversion factor from frames to seconds (e.g., 0.5 means 1 frame = 0.5 seconds). If None, temporal coordinates are not converted. Default: None
+- `data` (pd.DataFrame): DataFrame with 'x', 'y', and 'frame' columns
+- `px_to_m` (float, optional): Conversion factor from pixels to meters.
+- `frame_to_s` (float, optional): Conversion factor from frames to seconds.
 
 **Returns:**
-- `DataFrame`: DataFrame with converted coordinates and updated column names
+- `pd.DataFrame`: DataFrame with converted coordinates and updated column names
 
 **Example:**
 ```python
 from tropism_toolset.utils import convert_centerline_units
 
-# Convert pixels to meters (1 pixel = 0.001 m)
-df_m = convert_centerline_units(df, px_to_m=0.001)
-
-# Convert frames to seconds (1 frame = 0.5 s)
-df_s = convert_centerline_units(df, frame_to_s=0.5)
-
-# Convert both spatial and temporal units
-df_converted = convert_centerline_units(
+# Convert units
+df_si = convert_centerline_units(
     df,
     px_to_m=0.001,      # 1 pixel = 1 mm
     frame_to_s=0.5      # 1 frame = 0.5 seconds
 )
 ```
-
-**Notes:**
-- Automatically detects current units using `infer_columns_and_units()`
-- Updates column names to reflect new units (e.g., 'x' → 'x (meters)')
-- If data already has unit labels, they are preserved and updated
-- Conversion is applied to all frames in the DataFrame
-- Frame numbers are converted to time values if `frame_to_s` is provided
-- If data already has 'time (seconds)' column, spatial conversion is skipped
-- Returns a new DataFrame; does not modify the original
 
 ---
 
@@ -254,24 +180,6 @@ convert_px_to_m(
 ) -> pd.DataFrame
 ```
 
-**Parameters:**
-- `data` (DataFrame): DataFrame with centerline data
-- `px_to_m` (float): Conversion factor from pixels to meters
-
-**Returns:**
-- `DataFrame`: DataFrame with coordinates converted to meters
-
-**Example:**
-```python
-from tropism_toolset.utils import convert_px_to_m
-
-# Convert pixels to meters (1 pixel = 1 mm)
-df_meters = convert_px_to_m(df, px_to_m=0.001)
-```
-
-**Notes:**
-- Convenience function that calls `convert_centerline_units` with only spatial conversion
-
 ---
 
 ### `convert_frames_to_s()`
@@ -286,32 +194,42 @@ convert_frames_to_s(
 ) -> pd.DataFrame
 ```
 
-**Parameters:**
-- `data` (DataFrame): DataFrame with 'frame' column
-- `frame_to_s` (float): Conversion factor from frames to seconds
+---
+
+## Metadata inference
+
+### `infer_columns_and_units()`
+
+Detect x/y column names and units from DataFrame.
+
+**Signature:**
+```python
+infer_columns_and_units(df: pd.DataFrame) -> Tuple[str | None, str | None, str | None]
+```
 
 **Returns:**
-- `DataFrame`: DataFrame with 'time (seconds)' column added
+- `tuple`: (x_column, y_column, units)
+
+### `extract_series_name_and_unit()`
+
+Extract the variable name and unit from a pandas Series name.
+
+**Signature:**
+```python
+extract_series_name_and_unit(series: pd.Series) -> tuple[str, str | None]
+```
 
 **Example:**
 ```python
-from tropism_toolset.utils import convert_frames_to_s
-
-# Convert frames to seconds (1 frame = 0.5 s)
-df_with_time = convert_frames_to_s(df, frame_to_s=0.5)
+from tropism_toolset.utils import extract_series_name_and_unit
+s = pd.Series([1, 2], name="length (m)")
+name, unit = extract_series_name_and_unit(s)
+# name="length", unit="m"
 ```
-
-**Notes:**
-- Convenience function that calls `convert_centerline_units` with only temporal conversion
-- Adds 'time (seconds)' column while keeping the original 'frame' column
-
----
 
 ## Common Workflows
 
 ### Correct Centerline Orientation
-
-If your centerline extraction has the wrong orientation:
 
 ```python
 from tropism_toolset.utils import (
@@ -329,38 +247,9 @@ df_corrected = flip_centerlines(df, direction='horizontal')
 
 # If centerline starts at tip but should start at base:
 df_corrected = reverse_centerline_order(df)
-
-# If both issues exist:
-df_corrected = flip_centerlines(df, direction='horizontal')
-df_corrected = reverse_centerline_order(df_corrected)
 ```
-
-### Convert Units for Analysis
-
-Before extracting physical constants, convert to SI units:
-
-```python
-from tropism_toolset.utils import convert_centerline_units
-
-# Convert from pixel coordinates at 15-minute intervals
-df_si = convert_centerline_units(
-    df,
-    px_to_m=0.0001,     # 0.1 mm per pixel
-    frame_to_s=900      # 15 minutes per frame
-)
-
-# Now use df_si for analysis - all functions will use SI units
-from tropism_toolset import get_lengths_from_centerlines, fit_growth_rate
-
-length_data = get_lengths_from_centerlines(df_si, smooth=True)
-growth_rate = fit_growth_rate(length_data, display=True)
-print(f"Growth rate: {growth_rate:.6e} m/s")
-```
-
----
 
 ## See Also
 
 - [Geometric Calculations API](/reference/geometric-calculations/) - Uses unit-aware DataFrames
 - [Data Handling Guide](/guides/data-handling/) - Complete data preparation workflow
-- [Getting Started](/guides/installation/) - Setup and basic usage

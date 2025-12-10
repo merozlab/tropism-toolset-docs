@@ -1,0 +1,96 @@
+---
+title: Design Principles
+description: Understanding the architectural choices behind Tropism Toolset.
+---
+
+The **Tropism Toolset** is designed not just as a black-box library, but as a transparent toolkit for researchers who need to understand, verify, and potentially modify the analysis pipeline. Because scientific workflows often require diving into the source code, we've prioritized readability, explicit data structures, and functional purity over complex object-oriented abstractions.
+
+This guide explains the core design decisions—particularly our heavy reliance on [pandas](https://pandas.pydata.org/)—to help you navigate the codebase and build upon it effectively.
+
+## 1. The DataFrame as the Source of Truth
+
+In many scientific libraries, physical quantities are passed around as raw numpy arrays, often leading to "unit confusion" (e.g., *Is this array in pixels or meters? Is the time in frames or seconds?*).
+
+We solved this by treating the **pandas DataFrame** (and Series) as the primary data container.
+
+### Self-Describing Data
+We rely on **semantic column naming** to carry metadata along with the data. Instead of just `x` or `time`, our functions expect and produce columns like:
+- `x (meters)`
+- `angle (rad)`
+- `time (seconds)`
+- `length (mm)`
+
+### Why this matters
+This allows our functions to be "smart" without magic. For example, when you call a plotting function:
+
+```python
+# The plotting function sees "time (s)" in the column name
+# and automatically labels the x-axis "Time (s)"
+plot_centerline_data(data)
+```
+
+The system includes utilities like `infer_columns_and_units` that parse these names to decide how to process or visualize the data. This ensures that unit context is never lost as data flows through your pipeline.
+
+## 2. Functional, Stateless Architecture
+
+You will notice a lack of classes like `Plant` or `Experiment`. We deliberately chose a **functional programming style**.
+
+- **No Hidden State:** Functions take data in, perform a calculation, and return new data. They do not modify the input in place (unless explicitly documented) and do not store internal state between calls.
+- **Pipelines:** This approach makes it easy to chain operations.
+- **Transparency:** You can inspect the data at any step of the process.
+
+**Typical Workflow:**
+```python
+# Functional transformation pipeline
+raw_data = load_data(...)
+si_data = convert_centerline_units(raw_data, px_to_m=0.001)  # Returns new DataFrame
+angle_data = get_tip_angles_linear_fit(si_data)              # Returns new DataFrame
+velocity = fit_angular_velocity(angle_data)                  # Returns scalar
+```
+
+## 3. Explicit Model Fitting
+
+Curve fitting is central to extracting physical constants (like $\gamma$ and $\beta$). Rather than hiding the fitting logic, we expose it through explicit model functions in the `fitting` module.
+
+We use `scipy.optimize.curve_fit` but wrap it to provide:
+1.  **Data-driven initial guesses:** We analyze the data to guess starting parameters (e.g., estimating the time constant $\tau$ by finding where the curve reaches 63%).
+2.  **Diagnostic plotting:** Almost every fitting function has a `display=True` argument.
+
+### The `display=True` Philosophy
+We believe you should **always look at your fits**. Automated extraction of constants is dangerous if the underlying model doesn't match the data.
+
+```python
+# This enables a visual sanity check immediately
+Lc = fit_Lc(arclengths, angles, display=True)
+```
+
+This argument triggers matplotlib to show the raw data, the fitted curve, the residuals, and the extracted parameters, allowing for immediate visual verification.
+
+## 4. Tidy Data Format
+
+We adhere to the [Tidy Data](https://en.wikipedia.org/wiki/Tidy_data) principles.
+- **Each variable** is a column.
+- **Each observation** is a row.
+- **Each type of observational unit** is a table.
+
+For centerline data, this usually looks like:
+
+| frame | x (meters) | y (meters) |
+|-------|------------|------------|
+| 0     | 0.001      | 0.005      |
+| 0     | 0.002      | 0.006      |
+| ...   | ...        | ...        |
+| 1     | 0.001      | 0.005      |
+
+This "long format" allows us to use pandas' powerful `groupby` functionality to process thousands of frames efficiently without writing complex loops.
+
+## 5. Hackability
+
+We expect users to read the source code. The library is structured to be modular so you can import specific components if you want to build your own custom analysis.
+
+- `geometric_calculations.py`: Raw math on coordinates.
+- `fitting.py`: Generic optimization logic.
+- `constants.py`: Domain-specific physics (Chauvet/Bastien models).
+- `display_utils.py`: Visualization wrappers.
+
+If the provided `fit_growth_rate` function doesn't work for your specific plant species, you can import `fit_linear` from `fitting.py` and write your own wrapper, or copy the source code of `fit_growth_rate` and modify the preprocessing steps.

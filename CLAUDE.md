@@ -66,7 +66,12 @@ The content is organized into sections defined in `astro.config.mjs:23-73`:
 
 The site extensively uses LaTeX math notation rendered by KaTeX:
 - Inline math: `$L_c = \gamma/\beta$`
-- Block math: `$$\theta(s) = ...$$`
+- Block math: Wrap with <Equation> tags:
+    ```mdx
+    <Equation>
+    E = \frac{\sigma}{\varepsilon}
+    </Equation>
+    ``` 
 - Special consideration: all mathematical formulas must be properly escaped for Markdown
 
 ## Domain-Specific Context

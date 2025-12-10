@@ -334,125 +334,53 @@ $$
 
 ---
 
-## Complete Analysis Script
+## Running the Beta & Gamma Analysis Workflow
 
-Here's a complete script that processes a single experiment:
+The `beta_gamma_analysis.py` script provides a complete pipeline for extracting gravitropic ($\tilde\beta$) and proprioceptive ($\tilde\gamma$) sensitivities, along with the convergence length ($L_c$) and differential growth ($\tilde\Delta$).
 
-```python
-import pandas as pd
-from tropism_toolset import (
-    flip_centerlines_horizontal,
-    convert_centerline_units,
-    plot_centerline_data,
-    get_lengths_from_centerlines,
-    fit_growth_rate,
-    get_tip_angles_linear_fit,
-    fit_angular_velocity,
-    Chauvet_Delta_tilde,
-    Chauvet_beta_tilde,
-    x_y_to_s_theta,
-    fit_Lc,
-    Bastien_gamma_tilde
-)
+### Usage
 
-# Configuration
-R = 0.002  # Organ radius in meters (2 mm)
-TIP_PERCENT = 30  # Percentage of tip to analyze
-PX_TO_M = 35 / 1_000_000  # 35 pixels = 1 mm
-FRAME_TO_S = 9 * 60  # 9 minutes per frame
-
-# Load and prepare data
-df = pd.read_csv('experiment_centerlines.csv')
-df = flip_centerlines_horizontal(df)
-df = convert_centerline_units(df, px_to_m=PX_TO_M, frame_to_s=FRAME_TO_S)
-
-# Calculate growth rate
-length_data = get_lengths_from_centerlines(df, smooth=True)
-dL_dt = fit_growth_rate(length_data, display=True, save_path='growth_rate.png')
-
-# Calculate angular velocity
-angle_data = get_tip_angles_linear_fit(
-    df, percent=TIP_PERCENT, side='tip', bounds=(-2.5, 2.5)
-)
-dtheta_dt = fit_angular_velocity(
-    angle_data, display=True, save_path='angular_velocity.png'
-)
-
-# Calculate Delta and Beta
-Delta = Chauvet_Delta_tilde(dtheta_dt, dL_dt, R=R, display=True)
-beta = Chauvet_beta_tilde(Delta, df, display=True)
-
-# Fit convergence length
-last_frame_n = int(df['frame'].max())
-last_frame = df[df['frame'] == last_frame_n].reset_index(drop=True)
-s_theta_data = x_y_to_s_theta(last_frame)
-x0, Bl, A, Lc, r_squared = fit_Lc(
-    s_theta_data, display=True, save_path='Lc_fit.png'
-)
-
-# Calculate Gamma
-gamma = Bastien_gamma_tilde(beta_tilde=beta, Lc=Lc, R=R)
-
-# Print results
-print("\n" + "="*60)
-print("GRAVITROPIC AND PROPRIOCEPTIVE PARAMETERS")
-print("="*60)
-print(f"Growth rate (dL/dt):        {dL_dt:.6e} m/s")
-print(f"Angular velocity (dθ/dt):   {dtheta_dt:.6e} rad/s")
-print(f"Δ̃ (Delta tilde):            {Delta:.6f}")
-print(f"β̃ (Beta tilde):             {beta:.6f}")
-print(f"Lc (Convergence length):    {Lc:.4f} m")
-print(f"γ̃ (Gamma tilde):            {gamma:.6f}")
-print(f"Lc fit R²:                  {r_squared:.4f}")
-print("="*60)
+```bash
+python examples/workflows/beta_gamma_analysis.py <directory> [options]
 ```
 
----
+### Workflow Steps
 
-## Batch Processing Multiple Experiments
+1.  **Data Loading**: Loads centerline data from the specified directory.
+2.  **Unit Conversion**: Converts pixels to meters and frames to seconds using provided arguments.
+3.  **Growth Rate**: Calculates $dL/dt$ from smoothed length data.
+4.  **Angular Velocity**: Calculates $d\theta/dt$ from the tip angle time series.
+5.  **Parameter Extraction**:
+    *   Calculates Chauvet $\tilde\Delta$ and $\tilde\beta$.
+    *   Fits the steady-state profile to find $L_c$.
+    *   Calculates Bastien $\tilde\gamma$.
+6.  **Reporting**: Exports a summary CSV and statistics text file, along with diagnostic plots for every plant.
 
-For analyzing multiple experiments systematically:
+### Example
 
-```python
-import pandas as pd
-from pathlib import Path
+Analyze a dataset with a specific pixel-to-meter ratio and exclude outliers:
 
-experiments = ['exp1', 'exp2', 'exp3']
-results = []
-
-for exp_name in experiments:
-    print(f"\nProcessing {exp_name}...")
-
-    # Load data
-    df = pd.read_csv(f'{exp_name}_centerlines.csv')
-
-    # Run analysis pipeline (use code from above)
-    # ...
-
-    # Store results
-    results.append({
-        'experiment': exp_name,
-        'dL_dt': dL_dt,
-        'dtheta_dt': dtheta_dt,
-        'Delta': Delta,
-        'Beta': beta,
-        'Lc': Lc,
-        'Gamma': gamma
-    })
-
-# Export to CSV
-df_results = pd.DataFrame(results)
-df_results.to_csv('batch_analysis_results.csv', index=False)
-
-# Calculate summary statistics
-print("\nSummary Statistics:")
-for param in ['Delta', 'Beta', 'Lc', 'Gamma']:
-    values = df_results[param].values
-    print(f"{param}:")
-    print(f"  Mean:   {values.mean():.6e}")
-    print(f"  Std:    {values.std():.6e}")
-    print(f"  Median: {np.median(values):.6e}")
+```bash
+python examples/workflows/beta_gamma_analysis.py data/full_experiment \
+    --px-to-m 0.000035 \
+    --radius 0.002 \
+    --exclude "plant-5" "plant-8"
 ```
+
+### CLI Arguments
+
+| Argument | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `directory` | str | Required | Path to the directory containing experiment subdirectories. |
+| `--exclude` | list | `[]` | Experiment names to exclude. |
+| `--radius` | float | Required | Organ radius in meters (e.g., `0.002`). |
+| `--px-to-m` | float | Required | Pixel to meter conversion factor (e.g., `35e-6`). |
+| `--tip-percent` | int | `30` | Percentage of the tip to use for angle calculations. |
+| `--frame-duration` | float | `15.0` | Frame duration in minutes. |
+| `--flip-horizontal` | flag | `False` | Flip centerlines horizontally. |
+| `--flip-vertical` | flag | `False` | Flip centerlines vertically. |
+| `--reverse-point-order` | flag | `False` | Reverse point order (swap base/tip). |
+| `--fit-params` | str | `None` | Path to JSON file with custom $L_c$ fit parameters. |
 
 ---
 

@@ -15,10 +15,10 @@ Array of angles at each segment.
 
 **Type:**
 ```python
-NDArray[np.float64]
+pd.Series
 ```
 
-**Shape:** `(n-1,)` where n is number of coordinate points
+**Name:** "angles (rad)"
 
 **Units:** radians
 
@@ -26,7 +26,7 @@ NDArray[np.float64]
 ```python
 from tropism_toolset import get_angles
 
-angles: AngleArray = get_angles(frame_data)
+angles: pd.Series = get_angles(frame_data)
 ```
 
 ---
@@ -37,70 +37,21 @@ Array of cumulative arc lengths from start.
 
 **Type:**
 ```python
-NDArray[np.float64]
+pd.Series
 ```
 
-**Shape:** `(n-1,)` where n is number of coordinate points
+**Name:** "arclength (unit)"
 
-**Units:** meters
+**Units:** meters or input units
 
 **Usage:**
 ```python
 from tropism_toolset import get_arclengths
 
-arclengths: ArclengthArray = get_arclengths(frame_data)
+arclengths: pd.Series = get_arclengths(frame_data)
 ```
 
 ---
-
-### `CurvatureArray`
-
-Array of curvature values (κ = dθ/ds).
-
-**Type:**
-```python
-NDArray[np.float64]
-```
-
-**Shape:** `(n-2,)` where n is number of coordinate points
-
-**Units:** m⁻¹ (inverse meters) or rad/m
-
-**Usage:**
-```python
-from tropism_toolset.geometric_calculations import calculate_curvature
-
-curvatures: CurvatureArray = calculate_curvature(frame_data)
-```
-
----
-
-### `CoordinateArray`
-
-Array of x,y coordinate pairs or single coordinate dimension.
-
-**Type:**
-```python
-NDArray[np.float64]
-```
-
-**Shape:** `(n, 2)` or `(n,)` depending on context
-
-**Units:** meters or pixels
-
-**Usage:**
-```python
-import numpy as np
-
-x_coords: CoordinateArray = frame_data['x'].values
-y_coords: CoordinateArray = frame_data['y'].values
-```
-
----
-
-## Time Series Types
-
-Arrays spanning multiple frames.
 
 ### `TimeSeriesAngles`
 
@@ -108,42 +59,34 @@ Array of angle arrays, one per frame (variable-length).
 
 **Type:**
 ```python
-NDArray[np.object_]
+np.ndarray[object]
 ```
 
-**Shape:** `(n_frames,)` - each element is an `AngleArray`
+**Shape:** `(n_frames,)` - each element is an `pd.Series` of angles
 
 **Usage:**
 ```python
 from tropism_toolset import get_angles_over_time
 
-angles: TimeSeriesAngles = get_angles_over_time(data)
-
-# Access angles for specific frame
-frame_0_angles = angles[0]  # AngleArray for frame 0
+angles: np.ndarray = get_angles_over_time(data)
 ```
 
 ---
 
 ### `TimeSeriesArclengths`
 
-List of arclength arrays, one per frame.
+DataFrame containing arclengths for all frames.
 
 **Type:**
 ```python
-list[ArclengthArray]
+pd.DataFrame
 ```
-
-**Length:** n_frames
 
 **Usage:**
 ```python
 from tropism_toolset import get_arclengths_over_time
 
-arclengths: TimeSeriesArclengths = get_arclengths_over_time(data)
-
-# Access arclengths for specific frame
-frame_0_arcs = arclengths[0]  # ArclengthArray for frame 0
+arclengths: pd.DataFrame = get_arclengths_over_time(data)
 ```
 
 ---
@@ -154,19 +97,10 @@ Array of frame numbers or time indices.
 
 **Type:**
 ```python
-NDArray[np.int64]
+pd.Series
 ```
 
-**Shape:** `(n_frames,)`
-
-**Units:** frame numbers (dimensionless integers)
-
-**Usage:**
-```python
-import numpy as np
-
-frames: TimeArray = np.array(data['frame'].unique())
-```
+**Units:** frame numbers (dimensionless integers) or seconds
 
 ---
 
@@ -176,73 +110,20 @@ Generic time series of scalar values (one per frame).
 
 **Type:**
 ```python
-NDArray[np.float64]
+pd.Series
 ```
 
-**Shape:** `(n_frames,)`
-
-**Units:** varies (depends on measurement)
+**Name:** "variable (unit)"
 
 **Usage:**
 ```python
 from tropism_toolset import get_lengths_from_centerlines
 
-times: TimeArray
-lengths: TimeSeriesValues
-units: str
-
-times, lengths, units = get_lengths_from_centerlines(data)
+length_data: pd.DataFrame = get_lengths_from_centerlines(data)
+# length_data has columns for time and length
 ```
 
 ---
-
-### `LengthArray`
-
-Array of total lengths per frame.
-
-**Type:**
-```python
-NDArray[np.float64]
-```
-
-**Shape:** `(n_frames,)`
-
-**Units:** meters
-
-**Usage:**
-```python
-from tropism_toolset import get_lengths_from_centerlines
-
-times, lengths, units = get_lengths_from_centerlines(data)
-# lengths is LengthArray
-```
-
----
-
-### `CurvatureTimeSeriesArray`
-
-Array of average curvature per frame.
-
-**Type:**
-```python
-NDArray[np.float64]
-```
-
-**Shape:** `(n_frames,)`
-
-**Units:** m⁻¹ (inverse meters)
-
-**Usage:**
-```python
-from tropism_toolset.geometric_calculations import calculate_average_curvature_over_time
-
-times, curvatures = calculate_average_curvature_over_time(data)
-# curvatures is CurvatureTimeSeriesArray
-```
-
----
-
-## Fitting Types
 
 ### `PolyCoeffs`
 
@@ -250,100 +131,10 @@ Polynomial coefficients for linear fits.
 
 **Type:**
 ```python
-NDArray[np.float64]
+np.ndarray
 ```
 
 **Shape:** `(2,)` - [slope, intercept]
-
-**Usage:**
-```python
-from tropism_toolset.fitting import fit_linear
-
-slope, r2, coeffs = fit_linear(times, values)
-# coeffs is PolyCoeffs
-```
-
----
-
-### `GrowthRate`
-
-Linear growth rate scalar.
-
-**Type:**
-```python
-float
-```
-
-**Units:** m/frame or m/s
-
-**Usage:**
-```python
-from tropism_toolset import fit_growth_rate
-
-growth_rate: GrowthRate = fit_growth_rate(times, lengths)
-```
-
----
-
-### `AngularVelocity`
-
-Angular velocity scalar.
-
-**Type:**
-```python
-float
-```
-
-**Units:** rad/frame or rad/s
-
-**Usage:**
-```python
-from tropism_toolset import fit_angular_velocity
-
-angular_velocity: AngularVelocity = fit_angular_velocity(times, angles)
-```
-
----
-
-### `ConvergenceLength`
-
-Characteristic convergence length (Lc).
-
-**Type:**
-```python
-float
-```
-
-**Units:** meters
-
-**Usage:**
-```python
-from tropism_toolset.fitting import fit_Lc
-
-x0, Bl, A, Lc, r2 = fit_Lc(arclengths, angles)
-# Lc is ConvergenceLength
-```
-
----
-
-### `RSquared`
-
-Coefficient of determination.
-
-**Type:**
-```python
-float
-```
-
-**Range:** [0, 1] - goodness of fit metric
-
-**Usage:**
-```python
-from tropism_toolset.fitting import fit_linear
-
-slope, r_squared, coeffs = fit_linear(times, values)
-# r_squared is RSquared
-```
 
 ---
 
@@ -355,7 +146,7 @@ Return type for linear fitting.
 
 **Type:**
 ```python
-tuple[float, float, PolyCoeffs]
+tuple[float, float, np.ndarray]
 ```
 
 **Structure:** `(slope, r_squared, coeffs)`
@@ -364,7 +155,7 @@ tuple[float, float, PolyCoeffs]
 ```python
 from tropism_toolset.fitting import fit_linear
 
-result: LinearFitResult = fit_linear(times, values)
+result = fit_linear(times, values)
 slope, r2, coeffs = result
 ```
 
@@ -376,16 +167,16 @@ Return type for piecewise linear fitting.
 
 **Type:**
 ```python
-tuple[float, float, int, tuple[PolyCoeffs, PolyCoeffs]]
+tuple[float, float, float, tuple[np.ndarray, np.ndarray]]
 ```
 
 **Structure:** `(slope1, slope2, breakpoint, (p1_coeffs, p2_coeffs))`
 
 **Usage:**
 ```python
-from tropism_toolset.fitting import fit_piecewise_linear
+from tropism_toolset.fitting import fit_piecewise_linear_continuous
 
-result: PiecewiseFitResult = fit_piecewise_linear(frames, values)
+result = fit_piecewise_linear_continuous(times, values)
 slope1, slope2, bp, (p1, p2) = result
 ```
 
@@ -406,29 +197,8 @@ tuple[float, float, float, float]
 ```python
 from tropism_toolset.fitting import fit_saturating_exponential
 
-result: SaturatingExponentialResult = fit_saturating_exponential(times, values)
+result = fit_saturating_exponential(times, values)
 y_inf, y_0, tau, r2 = result
-```
-
----
-
-### `LogisticGrowthResult`
-
-Return type for logistic growth fit.
-
-**Type:**
-```python
-tuple[float, float, float, float, float]
-```
-
-**Structure:** `(K, y_0, r, t_m, r_squared)`
-
-**Usage:**
-```python
-from tropism_toolset.fitting import fit_logistic_growth
-
-result: LogisticGrowthResult = fit_logistic_growth(times, values)
-K, y_0, r, t_m, r2 = result
 ```
 
 ---
@@ -448,22 +218,9 @@ tuple[float, float, float, float, float]
 ```python
 from tropism_toolset.fitting import fit_Lc
 
-result: LcFitResult = fit_Lc(arclengths, angles)
+result = fit_Lc(s_theta_data)
 x0, Bl, A, Lc, r2 = result
 ```
-
----
-
-### `BastienDeltaResult`
-
-Return type for Bastien Delta fit.
-
-**Type:**
-```python
-tuple[float, float, PolyCoeffs]
-```
-
-**Structure:** `(Delta_over_R, r_squared, coeffs)`
 
 ---
 
@@ -473,7 +230,7 @@ Return type for mask stability analysis.
 
 **Type:**
 ```python
-tuple[ArclengthArray, int | None, float | None]
+tuple[pd.Series, int | None, float | None]
 ```
 
 **Structure:** `(stability_scores, steady_start_frame, median_mask_area)`
@@ -482,56 +239,8 @@ tuple[ArclengthArray, int | None, float | None]
 ```python
 from tropism_toolset.fitting import find_steady_state_from_masks
 
-result: MaskStabilityResult = find_steady_state_from_masks(mask_dir, px_per_m)
+result = find_steady_state_from_masks(mask_dir, px_per_m)
 scores, Tc, area = result
-```
-
----
-
-### `LengthOverTimeResult`
-
-Return type for length time series functions.
-
-**Type:**
-```python
-tuple[TimeArray, LengthArray, str]
-```
-
-**Structure:** `(frame_numbers, lengths, units_string)`
-
-**Usage:**
-```python
-from tropism_toolset import get_lengths_from_centerlines
-
-result: LengthOverTimeResult = get_lengths_from_centerlines(data)
-times, lengths, units = result
-```
-
----
-
-### `TimeSeriesResult`
-
-Generic return type for time series analysis.
-
-**Type:**
-```python
-tuple[TimeArray, TimeSeriesValues]
-```
-
-**Structure:** `(frame_numbers, values)`
-
-**Usage:**
-```python
-from tropism_toolset.geometric_calculations import (
-    get_tip_angles_averaging,
-    calculate_average_curvature_over_time
-)
-
-result: TimeSeriesResult = get_tip_angles_averaging(data)
-times, angles = result
-
-result: TimeSeriesResult = calculate_average_curvature_over_time(data)
-times, curvatures = result
 ```
 
 ---
@@ -545,11 +254,7 @@ Throughout the documentation:
 
 ## Type Safety
 
-These type aliases enable:
-- **IDE autocomplete**: Better IntelliSense and code suggestions
-- **Type checking**: Static analysis with mypy or similar tools
-- **Documentation**: Self-documenting code with semantic names
-- **Refactoring safety**: Easier to track data flow through functions
+These type definitions correspond to the actual return types in the Python code, which heavily utilizes `pandas.DataFrame` and `pandas.Series` for unit-aware data handling.
 
 ## See Also
 
