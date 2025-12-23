@@ -15,12 +15,13 @@ Calculate angles from x,y coordinate differences in a single frame.
 
 **Signature:**
 ```python
-get_angles(data: pd.DataFrame, show: bool = False) -> pd.Series
+get_angles(data: pd.DataFrame, show: bool = False, preset: str = "vertical") -> pd.Series
 ```
 
 **Parameters:**
 - `data` (pd.DataFrame): DataFrame with x and y columns for a single frame
 - `show` (bool, optional): Display angle plot. Default: False
+- `preset` (str, optional): Angle calculation preset: "vertical" (default) or "horizontal". Default: "vertical"
 
 **Returns:**
 - `pd.Series`: Series of angles in radians. Name: "angles (rad)"
@@ -202,28 +203,33 @@ avg_tip_angles = get_avg_angles_over_time(data, percent=30, side='tip')
 
 Functions for converting between Cartesian (x,y) and arc-length (s,θ) coordinate systems.
 
-### `x_y_to_s_theta()`
+### `xy_to_stheta()`
 
 Transform Cartesian to arc-length coordinates.
 
 **Signature:**
 ```python
-x_y_to_s_theta(data: pd.DataFrame) -> pd.DataFrame
+xy_to_stheta(data: pd.DataFrame) -> pd.DataFrame
 ```
 
 **Parameters:**
 - `data` (pd.DataFrame): DataFrame with 'x', 'y', and 'frame' columns
 
 **Returns:**
-- `pd.DataFrame`: DataFrame with 's' (arclength), 'theta' (angle in radians), and 'frame' columns
+- `pd.DataFrame`: DataFrame with 's (unit)' (arclength), 'theta (rad)' (angle in radians), and 'frame' columns
 
 **Example:**
 ```python
-from tropism_toolset import x_y_to_s_theta
+from tropism_toolset import xy_to_stheta
 
 # Convert pixel coordinates to s,theta (units match input)
-s_theta_data = x_y_to_s_theta(data)
+s_theta_data = xy_to_stheta(data)
 ```
+
+**Notes:**
+- Column names include units from input (e.g., 's (meters)', 's (pixels)')
+- Arclength units match input coordinate units
+- Use `convert_centerline_units()` before calling if unit conversion is needed
 
 ---
 

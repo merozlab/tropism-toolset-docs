@@ -3,6 +3,9 @@ title: Growth Analysis Workflow
 description: Workflow for analyzing plant growth rates, elongation, and growth zone dynamics.
 ---
 
+import RequiredData from '../../../components/RequiredData.astro';
+import DataItem from '../../../components/DataItem.astro';
+
 This guide details the **Growth Analysis Workflow**, used to quantify elongation rates, total growth, and the size of the growth zone. The workflow is implemented in the `growth_analysis.py` script.
 
 ## Overview
@@ -15,6 +18,35 @@ The growth analysis script (`growth_analysis.py`) performs the following for eac
 5.  **Computes Metrics**: Calculates total absolute growth, percent growth, and growth zone length ($L_{gz} = L_{final} - x_0$).
 6.  **Aggregates Statistics**: Generates summary statistics across all experiments.
 7.  **Visualizes Results**: Creates bar plots and histograms comparing growth metrics across experiments.
+
+## Prerequisites
+
+<RequiredData
+  title="Required Experimental Data"
+>
+To perform growth analysis, you need the following experimental data:
+  <DataItem
+    name="Centerline coordinates"
+    value="CSV files with x, y pixel positions and frame numbers for each time point"
+    required
+  />
+  <DataItem
+    name="Pixel-to-meter conversion"
+    value="Spatial calibration factor (e.g., 35 pixels = 1 mm = 0.001 m)"
+    units="px/m"
+    required
+  />
+  <DataItem
+    name="Frame interval"
+    value="Time between consecutive frames (default: 15 minutes)"
+    units="minutes/frame"
+    required
+  />
+  <DataItem
+    name="Steady-state frame"
+    value="Frame number where the plant has reached gravitropic equilibrium for Lc fitting"
+  />
+</RequiredData>
 
 ## Usage
 

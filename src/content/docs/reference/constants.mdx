@@ -92,7 +92,6 @@ Fit linear model to length data and extract growth rate (dL/dt).
 fit_growth_rate(
     data: pd.DataFrame,
     *,
-    plot: bool = False,
     display: bool = False,
     save_path: str | None = None,
     title: str = "Growth Rate",
@@ -178,6 +177,7 @@ Fit saturating exponential model to angle data and extract initial angular veloc
 ```python
 fit_angular_velocity_exponential(
     data: pd.DataFrame,
+    *,
     title: str = "Tip Angular Velocity - Saturating Exponential Fit",
     initial_guess: list | None = None,
     bounds: tuple | None = None,
@@ -188,11 +188,11 @@ fit_angular_velocity_exponential(
 
 **Parameters:**
 - `data` (pd.DataFrame): DataFrame with exactly 2 columns (temporal, angle)
-- `display` (bool, optional): When True, display the saturating exponential fit plot. Default: False
-- `save_path` (str or None, optional): If provided, save the plot to this path.
-- `title` (str, optional): Plot title.
+- `title` (str, optional): Plot title. Default: "Tip Angular Velocity - Saturating Exponential Fit"
 - `initial_guess` (list, optional): Initial parameter guess [theta_inf, theta_0, tau].
 - `bounds` (tuple, optional): Parameter bounds.
+- `display` (bool, optional): When True, display the saturating exponential fit plot. Default: False
+- `save_path` (str | Path | None, optional): If provided, save the plot to this path.
 
 **Returns:**
 - `float`: Initial angular velocity: (θ_∞ - θ_0)/τ [rad/frame or rad/s]

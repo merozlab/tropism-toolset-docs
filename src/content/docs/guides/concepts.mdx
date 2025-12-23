@@ -31,9 +31,10 @@ For analysis, we transform to natural coordinates that follow the centerline:
 - **θ**: Local tangent angle relative to vertical
 
 ```python
-from tropism_toolset import x_y_to_s_theta
+from tropism_toolset import xy_to_stheta
 
-s, theta = x_y_to_s_theta(x_coords, y_coords, px_to_m)
+# Convert DataFrame with x, y, frame columns to s, theta format
+s_theta_data = xy_to_stheta(data)
 ```
 
 This transformation is crucial because gravitropic models are formulated in terms of curvature and angle along the organ.
@@ -78,6 +79,70 @@ experiment_masks/
 - Binary BMP images (black background, white organ)
 - Sequential numbering with zero-padding
 - Same time resolution as centerline data
+
+## Recommended Data Organization
+
+For batch processing and multi-specimen experiments, organize your data following this hierarchical structure:
+
+```
+experiment_2024-01-15/          # One experiment run
+├── camera_01/                  # Each camera in the setup
+│   ├── specimen_A.csv         # Multiple specimens per camera
+│   ├── specimen_B.csv
+│   └── specimen_C.csv
+├── camera_02/
+│   ├── specimen_D.csv
+│   └── specimen_E.csv
+└── camera_03/
+    └── specimen_F.csv
+```
+
+### Organization Levels
+
+**Experiment directory** (top level)
+- Represents a single experimental run or session
+- All data collected under the same conditions
+- Example: `gravitropism_run_2024-01-15/`
+
+**Camera subdirectories** (middle level)
+- One subdirectory per camera in your multi-camera setup
+- Allows simultaneous tracking of multiple plants
+- Example: `camera_01/`, `camera_02/`, `camera_03/`
+
+**Centerline files** (individual specimens)
+- One CSV file per specimen tracked in each camera's field of view
+- Multiple specimens can be tracked within a single camera's timelapse
+- Example: `specimen_A.csv`, `specimen_B.csv`
+
+### Example: Real Experiment
+
+```
+data/
+└── arabidopsis_gravitropism_jan2024/
+    ├── left_camera/
+    │   ├── plant_01_centerlines.csv    # 200 frames × 80 points
+    │   ├── plant_02_centerlines.csv
+    │   └── plant_03_centerlines.csv
+    ├── center_camera/
+    │   ├── plant_04_centerlines.csv
+    │   └── plant_05_centerlines.csv
+    └── right_camera/
+        ├── plant_06_centerlines.csv
+        ├── plant_07_centerlines.csv
+        ├── plant_08_centerlines.csv
+        └── plant_09_centerlines.csv
+```
+
+### Why This Structure?
+
+This organization pattern enables:
+- **Batch processing**: Process all specimens across all cameras automatically
+- **Experiment tracking**: Keep all related data together
+- **Multi-camera support**: Handle complex experimental setups
+- **Scalability**: Easily add more cameras or specimens
+- **Reproducibility**: Clear structure for sharing and archiving
+
+The toolset's batch processing utilities (like `discover_experiments`) expect this structure and will recursively find all centerline files within it.
 
 ## Common Terminology
 

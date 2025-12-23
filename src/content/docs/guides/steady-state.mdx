@@ -3,6 +3,9 @@ title: Tip Angle Analysis Workflow
 description: Workflow for analyzing tip angle dynamics, visualizing reorientation, and fitting mathematical models.
 ---
 
+import RequiredData from '../../../components/RequiredData.astro';
+import DataItem from '../../../components/DataItem.astro';
+
 This guide details the **Tip Angle Analysis Workflow**, which focuses on quantifying the dynamics of organ reorientation over time. This workflow is implemented in the `tip_angle_analysis.py` script.
 
 ## Overview
@@ -16,6 +19,41 @@ The tip angle analysis script (`tip_angle_analysis.py`) performs the following:
 4.  **Model Fitting**: Fits a combined **Exponential Rise + Damped Sinusoid** model to the averaged data to characterize the gravitropic response.
     *   **Model**: $\theta(t) = A(1 - e^{-kt}) + B(1 - e^{-mt})e^{-lt}\sin(\omega t + p)$
     *   Captures both the initial exponential response and any subsequent oscillations (overshoot/correction).
+
+## Prerequisites
+
+<RequiredData
+  title="Required Experimental Data"
+>
+To perform tip angle analysis, you need the following experimental data:
+  <DataItem
+    name="Centerline coordinates"
+    value="CSV files with x, y pixel positions and frame numbers for each time point"
+    required
+  />
+  <DataItem
+    name="Pixel-to-meter conversion"
+    value="Spatial calibration factor for coordinate transformation"
+    units="px/m"
+    required
+  />
+  <DataItem
+    name="Frame interval"
+    value="Time between consecutive frames (default: 15 minutes)"
+    units="minutes/frame"
+    required
+  />
+  <DataItem
+    name="Tip percentage"
+    value="Percentage of centerline to use for tip angle calculation (default: 20%)"
+    units="%"
+  />
+  <DataItem
+    name="Time limit"
+    value="Maximum time window for analysis (default: 120 hours)"
+    units="hours"
+  />
+</RequiredData>
 
 ## Usage
 

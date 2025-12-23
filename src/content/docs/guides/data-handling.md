@@ -5,6 +5,28 @@ description: How to prepare and preprocess data for analysis using Tropism Tools
 
 This guide details the preprocessing workflow for standardizing and validating plant centerline data before in-depth analysis. This is crucial for ensuring data quality and consistency across experiments.
 
+## Expected Directory Structure
+
+The preprocessing workflow uses `discover_experiments()` to recursively find centerline files. Your data should follow this structure:
+
+```
+data/
+└── experiment_name/           # One experiment run
+    ├── camera_01/             # Each camera subdirectory
+    │   ├── plant_A.csv       # Multiple specimens per camera
+    │   └── plant_B.csv
+    └── camera_02/
+        ├── plant_C.csv
+        └── plant_D.csv
+```
+
+**Hierarchy:**
+- **Experiment directory**: All data from one experimental run
+- **Camera subdirectories**: One per camera (supports multi-camera setups)
+- **Centerline CSV files**: One per specimen tracked in that camera's timelapse
+
+This structure allows batch processing to automatically discover all specimens across all cameras in your experiment. For a detailed explanation of this organization pattern, see [Recommended Data Organization](/guides/concepts/#recommended-data-organization) in the Core Concepts guide.
+
 ### Features
 - **Batch Processing**: Recursively finds and processes experiments within specified directories.
 - **Data Standardization**: Applies geometric transformations (horizontal/vertical flips, reversing point order) to ensure all centerlines adhere to a consistent coordinate system (e.g., tip-to-base, left-to-right).

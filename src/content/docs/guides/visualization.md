@@ -10,28 +10,30 @@ The toolkit provides comprehensive visualization functions for all aspects of tr
 ### Basic Centerline Plot
 
 ```python
-from tropism_toolset import plot_centerline_data
+from tropism_toolset import plot_centerline_data, convert_centerline_units
 import pandas as pd
 
 data = pd.read_csv("centerlines.csv")
 
-fig, ax = plot_centerline_data(
-    data,
-    px_to_length=100,
-    units="meters"
-)
+# Convert units first (function auto-detects units from column names)
+data = convert_centerline_units(data, px_to_m=0.0001)
+
+fig, ax = plot_centerline_data(data)
 ```
 
 ### With Time Information
 
 ```python
+# Convert both spatial and temporal units
+data = convert_centerline_units(
+    data,
+    px_to_m=0.0001,
+    frame_to_s=15 * 60  # 15 minutes per frame in seconds
+)
+
 fig, ax = plot_centerline_data(
     data,
-    px_to_length=100,
-    units="meters",
-    plant_part="Root",
-    time_per_frame=15,      # minutes
-    time_unit="minutes"
+    plant_part="Root"
 )
 ```
 
@@ -40,31 +42,28 @@ fig, ax = plot_centerline_data(
 For publication-quality figures without axes:
 
 ```python
+data = convert_centerline_units(data, px_to_m=0.0001)
+
 fig, ax = plot_centerline_data(
     data,
-    px_to_length=100,
-    units="meters",
     show_scale_bar=True,
     scale_bar_location="lower right",
-    scale_bar_length=0.01  # 1 cm
+    scale_bar_length=0.01  # 1 cm explicit scale bar
 )
 ```
 
 ### Customization Options
 
 ```python
+data = convert_centerline_units(data, px_to_m=0.0001, frame_to_s=600)
+
 fig, ax = plot_centerline_data(
     data,
-    px_to_length=100,
-    units="millimeters",           # or "meters", "pixels"
     scatter_only=False,             # True for scatter points only
     reverse_frame_order=True,       # Latest frames on top
     point_size=2,                   # Marker size
     plant_part="Stem",              # For title
-    time_per_frame=10,
-    time_unit="minutes",
-    show_scale_bar=False,
-    scale_bar_location="upper left"
+    show_scale_bar=False
 )
 
 # Save figure
@@ -377,7 +376,7 @@ fig = plt.figure(figsize=(15, 10))
 
 # Panel A: Centerline evolution
 ax1 = plt.subplot(2, 3, 1)
-plot_centerline_data(data, px_to_length=100, units="meters")
+plot_centerline_data(data)  # Data should already have units converted
 ax1.text(-0.1, 1.1, 'A', transform=ax1.transAxes,
          fontsize=16, fontweight='bold')
 
@@ -472,9 +471,10 @@ experiments = ['exp1', 'exp2', 'exp3', 'exp4', 'exp5', 'exp6']
 for i, (ax, exp_name) in enumerate(zip(axes.flat, experiments)):
     # Load each experiment
     data = pd.read_csv(f"data/{exp_name}_centerlines.csv")
+    data = convert_centerline_units(data, px_to_m=0.0001)
 
     # Plot on subplot
-    plot_centerline_data(data, px_to_length=100, show_scale_bar=True)
+    plot_centerline_data(data, show_scale_bar=True)
     ax.set_title(exp_name)
 
 plt.tight_layout()

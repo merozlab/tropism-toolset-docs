@@ -24,14 +24,15 @@ from tropism_toolset import (
     get_angles_over_time, get_arclengths_over_time,
     fit_Lc, get_gamma, get_beta,
     find_steady_state,
-    plot_centerline_data
+    plot_centerline_data,
+    convert_centerline_units
 )
 
 # ============================================
 # 1. CONFIGURATION
 # ============================================
 data_file = "data/experiment_centerlines.csv"
-px_to_m = 100  # pixels per meter
+px_to_m = 0.0001  # meters per pixel (e.g., 0.1 mm per pixel)
 minutes_per_frame = 15
 period = minutes_per_frame * 60  # seconds
 
@@ -41,14 +42,13 @@ period = minutes_per_frame * 60  # seconds
 data = pd.read_csv(data_file)
 print(f"Loaded {len(data)} points from {data['frame'].nunique()} frames")
 
+# Convert units
+data = convert_centerline_units(data, px_to_m=px_to_m, frame_to_s=period)
+
 # Visualize centerlines over time
 fig, ax = plot_centerline_data(
     data,
-    px_to_length=px_to_m,
-    units="meters",
     plant_part="Root",
-    time_per_frame=minutes_per_frame,
-    time_unit="minutes",
     show_scale_bar=True
 )
 
@@ -227,6 +227,10 @@ print(f"Chauvet β̃: {beta_tilde:.4f} m⁻¹")
 
 Process multiple experiments and create comparison statistics.
 
+:::note[Data Organization]
+This workflow expects data organized as: **experiment directory** → **camera subdirectories** → **centerline CSV files**. See [Recommended Data Organization](/guides/concepts/#recommended-data-organization) for details.
+:::
+
 ```python
 from pathlib import Path
 import glob
@@ -359,7 +363,7 @@ fig = plt.figure(figsize=(12, 8))
 
 # A: Centerlines
 ax1 = plt.subplot(2, 3, 1)
-plot_centerline_data(data, px_to_length=px_to_m, show_scale_bar=True)
+plot_centerline_data(data, show_scale_bar=True)
 ax1.text(-0.15, 1.05, 'A', transform=ax1.transAxes,
          fontsize=16, fontweight='bold')
 ax1.set_title('Centerline Evolution')

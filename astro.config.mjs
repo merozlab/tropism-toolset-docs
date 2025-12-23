@@ -35,7 +35,6 @@ export default defineConfig({
         },
         {
           label: "Mathematical Models",
-          collapsed: true,
           items: [
             {
               label: "The AC and ACĖ Models",

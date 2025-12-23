@@ -16,8 +16,9 @@ Fit piecewise constant + saturating exponential to extract convergence length.
 ```python
 fit_Lc(
     data: pd.DataFrame,
+    *,
     rotate: Optional[str] = None,
-    initial_guess: Optional[list] = None,
+    initial_guess: Optional[List[Optional[float]]] = None,
     bounds: Optional[Tuple[list, list]] = None,
     crop_start: int = 0,
     crop_end: int = 0,
@@ -27,14 +28,14 @@ fit_Lc(
 ```
 
 **Parameters:**
-- `data` (pd.DataFrame): DataFrame from `x_y_to_s_theta` with 's' and 'theta' columns
-- `rotate` (str or None, optional): Rotation option: "horizontal", "vertical", or None. Default: None
-- `initial_guess` (list, optional): Initial parameters [x0, Bl, A, Lc]
-- `bounds` (tuple, optional): Parameter bounds
-- `crop_start` (int, optional): Points to crop from start. Default: 0
-- `crop_end` (int, optional): Points to crop from end. Default: 0
-- `display` (bool, optional): Display fit plot. Default: False
-- `save_path` (str | Path | None, optional): Save plot to path.
+- `data` (pd.DataFrame): Full DataFrame in either x,y or s,theta format containing centerline data. To rotate, the data must include the initial frame.
+- `rotate` (str or None, optional): Rotation option: "horizontal", "vertical", or None for no rotation. Default: None
+- `initial_guess` (list, optional): Initial parameters [x0, Bl, A, Lc]. Can contain None values for auto-estimation.
+- `bounds` (tuple, optional): Parameter bounds for curve fitting
+- `crop_start` (int, optional): Number of points to crop from beginning. Default: 0
+- `crop_end` (int, optional): Number of points to crop from end. Default: 0
+- `display` (bool, optional): Display fit plot inline. Default: False
+- `save_path` (str | Path | None, optional): Save plot to path
 
 **Returns:**
 - `tuple[float, float, float, float, float]`: (x0, Bl, A, Lc, r_squared)
@@ -57,15 +58,13 @@ $$
 
 **Example:**
 ```python
-from tropism_toolset import x_y_to_s_theta, fit_Lc
+from tropism_toolset import fit_Lc
 
-# Get steady-state frame data and convert to s-theta
-frame_data = data[data['frame'] == steady_frame]
-s_theta_data = x_y_to_s_theta(frame_data)
-
-# Fit to extract Lc
+# Fit using full DataFrame (can be in x,y or s,theta format)
+# Function will automatically use the last frame for fitting
 x0, Bl, A, Lc, r_squared = fit_Lc(
-    s_theta_data,
+    data,
+    rotate="horizontal",  # Optional: rotate to horizontal
     display=True,
     crop_end=3  # Remove noisy tip points
 )
@@ -73,6 +72,11 @@ x0, Bl, A, Lc, r_squared = fit_Lc(
 print(f"Convergence length: {Lc:.4f} m")
 print(f"R²: {r_squared:.4f}")
 ```
+
+**Notes:**
+- Accepts DataFrame in either x,y or s,theta format
+- Automatically uses the last (steady-state) frame for fitting
+- If `rotate` is specified, the data must include the initial frame for rotation calculation
 
 ---
 

@@ -25,10 +25,11 @@ from tropism_toolset import (
     get_arclengths,
     get_angles_over_time,
     get_arclengths_over_time,
+    xy_to_stheta,
     fit_Lc,
     get_gamma,
     get_beta,
-    plot_centerline_data
+    convert_centerline_units
 )
 ```
 
@@ -55,24 +56,24 @@ Total frames: 453
 Points per frame: 96
 ```
 
-## Step 3: Visualize the Centerlines
+## Step 3: Convert Units (if needed)
 
 ```python
-# Plot centerlines over time
-px_to_m = 100  # Conversion factor: pixels to meters
+# Convert from pixels to meters
+px_to_m = 0.0001  # Conversion factor: 0.0001 meters per pixel
+frame_to_s = 15 * 60  # 15 minutes per frame in seconds
 
-plot_centerline_data(
+data = convert_centerline_units(
     data,
-    px_to_length=px_to_m,
-    units="meters",
-    plant_part="Root",
-    time_per_frame=15,  # 15 minutes per frame
-    time_unit="minutes",
-    show_scale_bar=True
+    px_to_m=px_to_m,
+    frame_to_s=frame_to_s
 )
+
+# Check converted data
+print(f"Columns: {data.columns.tolist()}")
 ```
 
-This creates a time-lapse visualization showing how the plant grows and bends over time.
+This converts your data from pixels and frames to meters and seconds.
 
 ## Step 4: Calculate Geometric Properties
 
@@ -80,13 +81,14 @@ This creates a time-lapse visualization showing how the plant grows and bends ov
 # For a single frame
 single_frame = data[data['frame'] == 0]
 angles = get_angles(single_frame, show=True)
-arclengths = get_arclengths(single_frame)  # Returns lengths in same units as input
+arclengths = get_arclengths(single_frame)  # Returns lengths in meters (if converted)
+
+print(f"Number of angles: {len(angles)}")
+print(f"Total length: {arclengths.iloc[-1]:.4f} m")
 
 # For all frames
 angles_per_frame = get_angles_over_time(data)
-arclengths_per_frame = get_arclengths_over_time(data)
-# Convert to meters
-arclengths_per_frame = [arc / px_to_m for arc in arclengths_per_frame]
+arclengths_df = get_arclengths_over_time(data)
 ```
 
 ## Step 5: Extract Convergence Length (Lc)
@@ -94,23 +96,15 @@ arclengths_per_frame = [arc / px_to_m for arc in arclengths_per_frame]
 The convergence length is a key parameter describing the characteristic length scale of the gravitropic response.
 
 ```python
-# Use data from a specific frame (e.g., the last frame at steady state)
-final_frame = data['frame'].max()
-final_data = data[data['frame'] == final_frame]
-
-# Get angles and arclengths for this frame
-angles = get_angles(final_data)
-arclengths = get_arclengths(final_data)
-# Convert to meters if needed: arclengths_m = arclengths / px_to_m
-
-# Fit the saturating exponential model
+# Fit using the full DataFrame
+# fit_Lc automatically uses the last (steady-state) frame
 # Returns: (x0, Bl, A, Lc, r_squared)
 x0, Bl, A, Lc, r_squared = fit_Lc(
-    arclengths,
-    angles,
-    show=True,
+    data,
+    rotate="horizontal",  # Optional: rotate to horizontal before fitting
+    display=True,
     crop_start=0,
-    crop_end=3
+    crop_end=3  # Remove noisy tip points
 )
 
 print(f"\nFitted Parameters:")
@@ -146,11 +140,18 @@ Here's the complete workflow in one script:
 
 ```python
 import pandas as pd
-from tropism_toolset import *
+from tropism_toolset import (
+    convert_centerline_units,
+    get_angles,
+    get_arclengths,
+    fit_Lc,
+    get_gamma,
+    get_beta
+)
 
 # Configuration
 data_file = "data/experiment_centerlines.csv"
-px_to_m = 100
+px_to_m = 0.0001  # 0.1 mm per pixel
 period = 15 * 60  # seconds per frame
 Tc = 120  # steady state frame
 
@@ -158,25 +159,17 @@ Tc = 120  # steady state frame
 data = pd.read_csv(data_file)
 print(f"Loaded {len(data)} points from {data['frame'].nunique()} frames")
 
-# Visualize
-plot_centerline_data(
-    data,
-    px_to_length=px_to_m,
-    units="meters",
-    time_per_frame=period/60,
-    time_unit="minutes",
-    show_scale_bar=True
-)
+# Convert units
+data = convert_centerline_units(data, px_to_m=px_to_m, frame_to_s=period)
 
-# Analyze final frame
-final_frame = data['frame'].max()
-final_data = data[data['frame'] == final_frame]
-angles = get_angles(final_data)
-arclengths = get_arclengths(final_data)
-arclengths_m = arclengths / px_to_m  # Convert to meters
+# Analyze a single frame for inspection
+single_frame = data[data['frame'] == 0]
+angles = get_angles(single_frame)
+arclengths = get_arclengths(single_frame)
+print(f"First frame length: {arclengths.iloc[-1]:.4f} m")
 
-# Fit Lc
-x0, Bl, A, Lc, r_squared = fit_Lc(arclengths_m, angles, show=True)
+# Fit Lc (uses last frame automatically)
+x0, Bl, A, Lc, r_squared = fit_Lc(data, display=True, crop_end=3)
 
 # Calculate constants
 gamma = get_gamma(Tc, period)
