@@ -10,13 +10,13 @@ This guide presents the mathematical derivation connecting experimentally measur
 ## Overview
 
 The derivation progresses through three key models:
-1. **AC Model** (Bastien 2013): Curvature dynamics without growth
-2. **ACĖ Model** (Bastien 2014): Introducing differential growth
-3. **Chauvet Approximations** (Chauvet 2016): Simplifications for slender organs
+1. **AC Model** ([Bastien et al. 2013](https://doi.org/10.1073/pnas.1214301109)): Curvature dynamics without growth
+2. **ACĖ Model** ([Bastien et al. 2014](https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2014.00136/full)): Introducing differential growth
+3. **Chauvet Approximations** ([Chauvet et al. 2016](https://www.nature.com/articles/srep35431)): Simplifications for slender organs
 
 ---
 
-## Starting Point: AC Model (Bastien 2013)
+## Starting Point: AC Model (Bastien et al. 2013)
 
 The AC (Angle-Curvature) model describes gravitropic response dynamics without considering growth:
 
@@ -40,7 +40,7 @@ This model successfully describes the steady-state angle profile but cannot acco
 
 ---
 
-## Introducing Growth: ACĖ Model (Bastien 2014)
+## Introducing Growth: ACĖ Model (Bastien et al. 2014)
 
 Real plant organs grow while bending. Consider differential growth across a stem of radius **R**, with strain rates **ε̇₁** and **ε̇₂** on opposite sides.
 
@@ -114,7 +114,7 @@ This equation states: **differential growth rate = gravitropic response + propri
 
 ---
 
-## Approximations for Slender Organs (Chauvet 2016)
+## Approximations for Slender Organs (Chauvet et al. 2016)
 
 For practical measurements on growing plant organs, Chauvet introduced key simplifications.
 
@@ -185,7 +185,7 @@ $$\boxed{\tilde{\Delta} = R\,\frac{d\theta_{\text{tip}}/dt}{dL/dt}}$$
 
 ---
 
-## Extracting β̃: The Sine Law (Chauvet 2016)
+## Extracting β̃: The Sine Law (Chauvet et al. 2016)
 
 At **early times** when curvature is still small (R κ ≈ 0), the proprioceptive term vanishes:
 
@@ -227,7 +227,7 @@ This approach averages out measurement noise and validates the sine law assumpti
 
 ---
 
-## Extracting γ̃: Convergence Length Method (Bastien 2013)
+## Extracting γ̃: Convergence Length Method (Bastien et al. 2013)
 
 At **steady state** (long times after reorientation), the plant reaches gravitropic equilibrium where:
 
@@ -448,12 +448,12 @@ $$\tilde{\beta} = \frac{\beta R}{\dot{E}}$$
 
 </Equation>
 
-**High β̃** (> 5):
+**High β̃**:
 - Strong gravitropic response relative to growth
 - Plant responds quickly to inclination
 - Typical of strongly gravitropic roots
 
-**Low β̃** (< 1):
+**Low β̃**:
 - Weak gravitropic response relative to growth
 - Plant is "growth-dominated"
 - May indicate modified gravitropism (e.g., mutants)
@@ -466,12 +466,12 @@ $$\tilde{\gamma} = \frac{\gamma}{\dot{E}}$$
 
 </Equation>
 
-**High γ̃** (> 20):
+**High γ̃**:
 - Strong proprioceptive sensing relative to growth
 - Plant strongly resists curvature
 - Short convergence length (localized graviresponse)
 
-**Low γ̃** (< 5):
+**Low γ̃**:
 - Weak proprioceptive sensing relative to growth
 - Plant allows more curvature
 - Long convergence length (extended graviresponse)
@@ -490,28 +490,6 @@ This ratio sets the **spatial scale** of gravitropic control:
 
 ---
 
-## Historical Context
-
-### Bastien et al. (2013): AC Model
-
-Introduced the angle-curvature framework connecting gravitropic and proprioceptive sensing, predicting exponential steady-state profiles.
-
-**Key Innovation:** Separated gravitropic sensing (sin θ) from proprioceptive sensing (κ).
-
-### Bastien et al. (2014): ACĖ Model
-
-Extended the model to include growth, introducing dimensionless sensitivities and the differential strain Δ̃.
-
-**Key Innovation:** Showed how differential growth drives bending through the material derivative of curvature.
-
-### Chauvet et al. (2016): Experimental Validation
-
-Validated the sine law experimentally and provided practical methods for extracting β̃ from experiments.
-
-**Key Innovation:** Simplified formulas for slender organs, enabling experimental measurements from time-lapse imaging alone.
-
----
-
 ## See Also
 
 - [Finding β̃ and γ̃ - Practical Guide](/guides/finding-beta-gamma/) - Step-by-step experimental workflow
@@ -523,8 +501,8 @@ Validated the sine law experimentally and provided practical methods for extract
 
 ## References
 
-1. **Bastien, R., Bohr, T., Moulia, B., & Douady, S. (2013).** Unifying model of shoot gravitropism reveals proprioception as a central feature of posture control in plants. *PNAS*, 110(2), 755-760.
+1. **[Bastien et al. (2013)](https://doi.org/10.1073/pnas.1214301109)** - Bastien, R., Bohr, T., Moulia, B., & Douady, S. Unifying model of shoot gravitropism reveals proprioception as a central feature of posture control in plants. *PNAS*, 110(2), 755-760.
 
-2. **Bastien, R., Douady, S., & Moulia, B. (2014).** A unifying modeling of plant shoot gravitropism with an explicit account of the effects of growth. *Frontiers in Plant Science*, 5, 136.
+2. **[Bastien et al. (2014)](https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2014.00136/full)** - Bastien, R., Douady, S., & Moulia, B. A unifying modeling of plant shoot gravitropism with an explicit account of the effects of growth. *Frontiers in Plant Science*, 5, 136.
 
-3. **Chauvet, H., Pouliquen, O., Forterre, Y., Legué, V., & Moulia, B. (2016).** Inclination not force is sensed by plants during shoot gravitropism. *Scientific Reports*, 6, 35431.
+3. **[Chauvet et al. (2016)](https://www.nature.com/articles/srep35431)** - Chauvet, H., Pouliquen, O., Forterre, Y., Legué, V., & Moulia, B. Inclination not force is sensed by plants during shoot gravitropism. *Scientific Reports*, 6, 35431.

@@ -90,7 +90,7 @@ We expect users to read the source code. The library is structured to be modular
 
 - `geometric_calculations.py`: Raw math on coordinates.
 - `fitting.py`: Generic optimization logic.
-- `constants.py`: Domain-specific physics (Chauvet/Bastien models).
+- `constants.py`: Domain-specific physics ([Chauvet et al. 2016](https://www.nature.com/articles/srep35431) / [Bastien et al. 2013](https://doi.org/10.1073/pnas.1214301109), [2014](https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2014.00136/full) models).
 - `display_utils.py`: Visualization wrappers.
 
 If the provided `fit_growth_rate` function doesn't work for your specific plant species, you can import `fit_linear` from `fitting.py` and write your own wrapper, or copy the source code of `fit_growth_rate` and modify the preprocessing steps.

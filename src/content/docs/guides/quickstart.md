@@ -1,217 +1,135 @@
 ---
 title: Quick Start
-description: Get started with your first tropism analysis in minutes.
+description: Analyze your first plant tropism experiment in 5 minutes.
 ---
 
-This guide walks you through a complete analysis workflow, from loading data to extracting physical constants.
+This guide shows you how to extract physical constants from a single plant gravitropism experiment. You'll go from raw centerline data to gamma (γ) and beta (β) in minutes.
 
-## Prerequisites
+## What You Need
 
 - Tropism Toolset installed ([Installation Guide](/guides/installation/))
-- Centerline data in CSV format with columns: `frame`, `x`, `y`
-- Python environment activated
+- A centerline CSV file with columns: `frame`, `x`, `y`
+- Two calibration values: pixels-to-meters and minutes-per-frame
 
-:::tip[Data Format]
-Your CSV should contain centerline coordinates extracted from plant images. We recommend using [SAP (Segmentation App)](https://github.com/merozlab/plant-segmentation-app) for extracting centerlines from images.
+:::tip[Getting Centerline Data]
+Extract centerlines from your timelapse images using [SAP (Segmentation App)](https://github.com/merozlab/plant-segmentation-app) or ImageJ/Fiji.
 :::
 
-## Step 1: Import the Package
+## The 5-Minute Analysis
 
-```python
-import pandas as pd
-import numpy as np
-from tropism_toolset import (
-    get_angles,
-    get_arclengths,
-    get_angles_over_time,
-    get_arclengths_over_time,
-    xy_to_stheta,
-    fit_Lc,
-    get_gamma,
-    get_beta,
-    convert_centerline_units
-)
-```
-
-## Step 2: Load Your Data
-
-```python
-# Load centerline data from CSV
-data = pd.read_csv("data/experiment_centerlines.csv")
-
-# Check the data structure
-print(data.head())
-print(f"Total frames: {data['frame'].nunique()}")
-print(f"Points per frame: {len(data[data['frame'] == 0])}")
-```
-
-Expected output:
-```
-   frame    x      y
-0      0  245  1088
-1      0  246  1076
-2      0  248  1064
-...
-Total frames: 453
-Points per frame: 96
-```
-
-## Step 3: Convert Units (if needed)
-
-```python
-# Convert from pixels to meters
-px_to_m = 0.0001  # Conversion factor: 0.0001 meters per pixel
-frame_to_s = 15 * 60  # 15 minutes per frame in seconds
-
-data = convert_centerline_units(
-    data,
-    px_to_m=px_to_m,
-    frame_to_s=frame_to_s
-)
-
-# Check converted data
-print(f"Columns: {data.columns.tolist()}")
-```
-
-This converts your data from pixels and frames to meters and seconds.
-
-## Step 4: Calculate Geometric Properties
-
-```python
-# For a single frame
-single_frame = data[data['frame'] == 0]
-angles = get_angles(single_frame, show=True)
-arclengths = get_arclengths(single_frame)  # Returns lengths in meters (if converted)
-
-print(f"Number of angles: {len(angles)}")
-print(f"Total length: {arclengths.iloc[-1]:.4f} m")
-
-# For all frames
-angles_per_frame = get_angles_over_time(data)
-arclengths_df = get_arclengths_over_time(data)
-```
-
-## Step 5: Extract Convergence Length (Lc)
-
-The convergence length is a key parameter describing the characteristic length scale of the gravitropic response.
-
-```python
-# Fit using the full DataFrame
-# fit_Lc automatically uses the last (steady-state) frame
-# Returns: (x0, Bl, A, Lc, r_squared)
-x0, Bl, A, Lc, r_squared = fit_Lc(
-    data,
-    rotate="horizontal",  # Optional: rotate to horizontal before fitting
-    display=True,
-    crop_start=0,
-    crop_end=3  # Remove noisy tip points
-)
-
-print(f"\nFitted Parameters:")
-print(f"Convergence Length (Lc): {Lc:.4f} m")
-print(f"Baseline Angle (Bl): {Bl:.4f} rad")
-print(f"Amplitude (A): {A:.4f} rad")
-print(f"R²: {r_squared:.4f}")
-```
-
-## Step 6: Calculate Physical Constants
-
-```python
-# Determine steady state frame (Tc)
-# This can be done manually or using find_steady_state()
-Tc = 120  # Frame where steady state begins
-
-# Calculate gamma (proprioceptive sensitivity)
-period = 15 * 60  # 15 minutes per frame in seconds
-gamma = get_gamma(Tc, period)
-
-# Calculate beta (gravitropic sensitivity)
-beta = get_beta(Lc, gamma)
-
-print(f"\nPhysical Constants:")
-print(f"Gamma (γ): {gamma:.6f} s⁻¹")
-print(f"Beta (β): {beta:.4f} m⁻¹")
-print(f"Characteristic time: {1/gamma:.2f} s")
-```
-
-## Complete Example
-
-Here's the complete workflow in one script:
+Here's a complete analysis in one script. Copy this and adjust the configuration values:
 
 ```python
 import pandas as pd
 from tropism_toolset import (
     convert_centerline_units,
-    get_angles,
-    get_arclengths,
     fit_Lc,
+    find_steady_state,
     get_gamma,
-    get_beta
+    get_beta,
+    get_lengths_from_centerlines
 )
 
-# Configuration
-data_file = "data/experiment_centerlines.csv"
-px_to_m = 0.0001  # 0.1 mm per pixel
-period = 15 * 60  # seconds per frame
-Tc = 120  # steady state frame
+# ============================================
+# CONFIGURATION - Edit these values
+# ============================================
+data_file = "my_experiment.csv"
+px_to_m = 0.0001          # Your calibration: meters per pixel
+minutes_per_frame = 15    # Time between frames
 
-# Load data
+# ============================================
+# LOAD DATA
+# ============================================
 data = pd.read_csv(data_file)
-print(f"Loaded {len(data)} points from {data['frame'].nunique()} frames")
+print(f"✓ Loaded {data['frame'].nunique()} frames")
 
-# Convert units
+# Convert to physical units
+period = minutes_per_frame * 60  # Convert to seconds
 data = convert_centerline_units(data, px_to_m=px_to_m, frame_to_s=period)
 
-# Analyze a single frame for inspection
-single_frame = data[data['frame'] == 0]
-angles = get_angles(single_frame)
-arclengths = get_arclengths(single_frame)
-print(f"First frame length: {arclengths.iloc[-1]:.4f} m")
+# ============================================
+# FIND STEADY STATE (Tc)
+# ============================================
+length_df = get_lengths_from_centerlines(data)
+Tc, _ = find_steady_state(
+    length_df["length (meters)"].values,
+    show=True
+)
+print(f"✓ Steady state at frame {Tc} ({Tc * minutes_per_frame:.0f} min)")
 
-# Fit Lc (uses last frame automatically)
-x0, Bl, A, Lc, r_squared = fit_Lc(data, display=True, crop_end=3)
+# ============================================
+# FIT CONVERGENCE LENGTH (Lc)
+# ============================================
+x0, Bl, A, Lc, r_squared = fit_Lc(
+    data,
+    display=True,
+    crop_end=3  # Remove noisy tip points
+)
+print(f"✓ Convergence length: {Lc:.4f} m (R² = {r_squared:.3f})")
 
-# Calculate constants
+# ============================================
+# CALCULATE CONSTANTS
+# ============================================
 gamma = get_gamma(Tc, period)
 beta = get_beta(Lc, gamma)
 
-# Print results
-print("\n" + "="*50)
-print("ANALYSIS RESULTS")
-print("="*50)
-print(f"Convergence Length (Lc): {Lc:.4f} m")
-print(f"Proprioceptive Sensitivity (γ): {gamma:.6f} s⁻¹")
-print(f"Gravitropic Sensitivity (β): {beta:.4f} m⁻¹")
-print(f"Fit Quality (R²): {r_squared:.4f}")
-print("="*50)
+# ============================================
+# RESULTS
+# ============================================
+print("\n" + "="*60)
+print("GRAVITROPISM CONSTANTS")
+print("="*60)
+print(f"Convergence Length (Lc):        {Lc*100:.2f} cm")
+print(f"Proprioceptive Sensitivity (γ): {gamma:.6e} s⁻¹")
+print(f"Gravitropic Sensitivity (β):    {beta:.4f} m⁻¹")
+print(f"Characteristic Time (1/γ):      {1/gamma/3600:.2f} hours")
+print("="*60)
 ```
 
-## Understanding the Results
+## Understanding the Output
 
-- **Lc (Convergence Length)**: The length scale over which the plant organ responds to gravitropic stimulus (~0.01-0.1 m for roots)
-- **γ (Gamma)**: How quickly the plant corrects its orientation (higher = faster response)
-- **β (Beta)**: Spatial sensitivity to gravity (β = γ/Lc)
-- **R²**: Goodness of fit (>0.95 is excellent)
+The script will show you two plots:
+
+1. **Steady State Detection**: Shows when the plant's growth enters steady state
+2. **Lc Fit**: Shows the angle profile along the plant and the exponential fit
+
+And print three key physical constants:
+
+| Constant | Symbol | Meaning |
+|----------|--------|---------|
+| Convergence Length | $L_c$ | Length scale of gravitropic response |
+| Proprioceptive Sensitivity | $\gamma$ | How fast the plant reorients (s⁻¹) |
+| Gravitropic Sensitivity | $\beta$ | Spatial sensitivity to gravity (m⁻¹) |
+
+**Good results:** R² > 0.95 indicates a good fit. If lower, try adjusting `crop_end` or check your data quality.
+
+## What Just Happened?
+
+1. **Loaded data**: Read your CSV with (frame, x, y) coordinates
+2. **Converted units**: Transformed pixels → meters and frames → seconds
+3. **Found Tc**: Detected when the plant reached steady-state bending
+4. **Fitted Lc**: Measured the convergence length from the angle profile
+5. **Calculated γ and β**: Derived the fundamental tropism constants
+
+## Troubleshooting
+
+**Poor fit (R² < 0.90)?**
+- Try different `crop_end` values (1-5) to exclude noisy tip regions
+- Check that your centerline points go from base to tip consistently
+
+**Can't find steady state?**
+- Manually set `Tc` to the frame where bending stabilizes
+- Your experiment may need more frames to reach steady state
+
+**Import errors?**
+- Verify installation: `pip show tropism-toolset`
+- Check you're using the correct Python environment
 
 ## Next Steps
 
-Now that you've completed your first analysis:
+Now that you've run a basic analysis:
 
-- Learn about [Core Concepts](/guides/concepts/) to understand the theory
-- Explore [Geometric Analysis](/guides/geometric-analysis/) for more detailed spatial analysis
-- Read about [Steady State Detection](/guides/steady-state/) for automated Tc determination
-- Check out [Growth Analysis](/guides/growth-analysis/) for temporal dynamics
-
-## Common Issues
-
-### "No module named 'constants'"
-
-Make sure you're using the correct Jupyter kernel. See [Installation Guide](/guides/installation/#jupyter-setup).
-
-### Poor Fit Quality (Low R²)
-
-Try adjusting the `crop_start` and `crop_end` parameters in `fit_Lc()` to exclude noisy regions at the tip or base.
-
-### Unexpected Angle Values
-
-Check your angle preset. The toolkit uses mathematical convention by default. See `PRESET` in [geometric_calculations.py](/reference/geometric-calculations/).
+- **Batch processing**: [Complete Workflows](/examples/workflows/) shows how to process multiple plants
+- **Understanding the theory**: [Core Concepts](/guides/concepts/) explains the mathematical models
+- **Visualization**: [Visualization Guide](/guides/visualization/) for publication-quality figures
+- **Advanced fitting**: [Growth Analysis](/guides/growth-analysis/) for temporal dynamics
